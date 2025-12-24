@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import React, { useState } from 'react';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login } from '@/routes';
 import { Menu, X } from 'lucide-react';
 
 export default function FrontendNavbar() {
@@ -58,13 +58,13 @@ export default function FrontendNavbar() {
                                     Log in
                                 </Button>
                             </Link>
-                            {canRegister && (
+                            {/* {canRegister && (
                                 <Link href={register()}>
                                     <Button className="bg-amber-600 hover:bg-amber-700 text-white border-none shadow-[0_0_15px_rgba(217,119,6,0.3)] hover:shadow-[0_0_25px_rgba(217,119,6,0.5)] transition-all duration-300">
                                         Register
                                     </Button>
                                 </Link>
-                            )}
+                            )} */}
                         </>
                     )}
                 </div>
@@ -99,13 +99,7 @@ export default function FrontendNavbar() {
                                             Log in
                                         </Button>
                                     </Link>
-                                    {canRegister && (
-                                        <Link href={register()} onClick={toggleMobileMenu} className="w-full">
-                                            <Button className="w-full bg-amber-600 hover:bg-amber-700 text-white border-none shadow-[0_0_15px_rgba(217,119,6,0.3)] hover:shadow-[0_0_25px_rgba(217,119,6,0.5)] transition-all duration-300">
-                                                Register
-                                            </Button>
-                                        </Link>
-                                    )}
+
                                 </>
                             )}
                         </div>

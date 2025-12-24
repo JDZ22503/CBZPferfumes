@@ -15,6 +15,12 @@ class Order extends Model
         'type',
         'payment_status',
         'message',
+        'bill_details',
+    ];
+
+    protected $casts = [
+        'bill_details' => 'array',
+        'order_date' => 'date',
     ];
 
     public function party()

@@ -13,6 +13,10 @@ interface OrderItem {
         name: string;
         sku: string;
     } | null;
+    attar: {
+        name: string;
+        sku: string;
+    } | null;
     quantity: number;
     unit_price: string;
     total_price: string;
@@ -48,11 +52,21 @@ export default function OrderDetailsModal({ order, open, onClose }: Props) {
         status: order.status,
         payment_status: order.payment_status,
         message: order.message || '',
+        items: order.items.map(item => ({
+            id: item.id,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            product: item.product,
+            product_set: item.product_set,
+            attar: item.attar,
+        })),
     });
 
-    // Update form data when order changes
-    // React's key on the Dialog component in parent will handle reset, 
-    // but explicit effect or key is safer. For now let's rely on mounting.
+    // Calculate totals dynamically based on form data
+    const subtotal = data.items.reduce((sum, item) => {
+        return sum + (Number(item.quantity) * Number(item.unit_price));
+    }, 0);
+    const totalWithGST = subtotal * 1.18;
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -61,16 +75,25 @@ export default function OrderDetailsModal({ order, open, onClose }: Props) {
         });
     };
 
+    const handleItemChange = (index: number, field: 'quantity' | 'unit_price', value: string) => {
+        const newItems = [...data.items];
+        newItems[index] = {
+            ...newItems[index],
+            [field]: value
+        };
+        setData('items', newItems);
+    };
+
     return (
         <Dialog open={open} onOpenChange={onClose}>
             <DialogContent className="w-[95vw] sm:max-w-2xl lg:max-w-5xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                    <DialogTitle className="flex justify-between items-center">
+                    <DialogTitle className="flex justify-between items-center pr-8">
                         <span>Order #{order.id}</span>
                         <a
                             href={route('orders.print', order.id)}
                             target="_blank"
-                            className="inline-flex items-center justify-center rounded-md bg-green-500 border border-gray-300 px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:bg-green-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
+                            className="inline-flex items-center justify-center rounded-md bg-green-500 border border-gray-300 px-2 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:bg-green-700 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-600"
                         >
                             <Save className="h-4 w-4 mr-2" />
                             Download Bill
@@ -94,33 +117,69 @@ export default function OrderDetailsModal({ order, open, onClose }: Props) {
                                     <thead>
                                         <tr>
                                             <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Product</th>
-                                            <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Qty</th>
-                                            <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Price</th>
+                                            <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-24">Qty</th>
+                                            <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-32">Price</th>
                                             <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                        {order.items.map((item) => {
-                                            const productName = item.product ? item.product.name : item.product_set?.name || 'Unknown Item';
-                                            const productSku = item.product ? item.product.sku : item.product_set?.sku || '-';
+                                        {data.items.map((item, index) => {
+                                            const productName = item.product
+                                                ? item.product.name
+                                                : item.product_set
+                                                    ? item.product_set.name
+                                                    : item.attar
+                                                        ? item.attar.name
+                                                        : 'Unknown Item';
+
+                                            const productSku = item.product
+                                                ? item.product.sku
+                                                : item.product_set
+                                                    ? item.product_set.sku
+                                                    : item.attar
+                                                        ? item.attar.sku
+                                                        : '-';
+
                                             const isSet = !!item.product_set;
+                                            const isAttar = !!item.attar;
+
+                                            const lineTotal = Number(item.quantity) * Number(item.unit_price);
 
                                             return (
                                                 <tr key={item.id}>
-                                                    <td className="px-3 py-2 text-sm text-gray-900 dark:text-white">
+                                                    <td className="px-1 py-2 text-sm text-gray-900 dark:text-white">
                                                         <div className="font-medium">{productName}</div>
                                                         <div className="text-xs text-gray-500 mb-1">{productSku}</div>
                                                         <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide ${isSet
                                                             ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400'
-                                                            : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
+                                                            : isAttar
+                                                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                                : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
                                                             }`}>
-                                                            {isSet ? 'Gift Set' : 'Single Unit'}
+                                                            {isSet ? 'Gift Set' : isAttar ? 'Attar' : 'Single Unit'}
                                                         </span>
                                                     </td>
-                                                    <td className="px-3 py-2 text-sm text-gray-900 dark:text-white text-right align-top pt-3">{item.quantity}</td>
-                                                    <td className="px-3 py-2 text-sm text-gray-900 dark:text-white text-right align-top pt-3">₹{Number(item.unit_price).toFixed(2)}</td>
+                                                    <td className="px-3 py-2 text-sm text-gray-900 dark:text-white text-right align-top pt-3">
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            value={item.quantity}
+                                                            onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                                                            className="w-full text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-xs dark:bg-gray-700 dark:border-gray-600 py-1 px-2"
+                                                        />
+                                                    </td>
+                                                    <td className="px-1 py-2 text-sm text-gray-900 dark:text-white text-right align-top pt-3">
+                                                        <input
+                                                            type="number"
+                                                            min="0"
+                                                            step="0.01"
+                                                            value={item.unit_price}
+                                                            onChange={(e) => handleItemChange(index, 'unit_price', e.target.value)}
+                                                            className="w-full text-right rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-xs dark:bg-gray-700 dark:border-gray-600 py-1 px-2"
+                                                        />
+                                                    </td>
                                                     <td className="px-3 py-2 text-sm font-medium text-gray-900 dark:text-white text-right align-top pt-3">
-                                                        ₹{Number(item.total_price).toFixed(2)}
+                                                        ₹{lineTotal.toFixed(2)}
                                                     </td>
                                                 </tr>
                                             );
@@ -128,12 +187,9 @@ export default function OrderDetailsModal({ order, open, onClose }: Props) {
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <td colSpan={3} className="px-3 py-2 text-right text-sm font-medium text-gray-900 dark:text-white">Total Amount + GST</td>
+                                            <td colSpan={3} className="px-3 py-2 text-right text-sm font-medium text-gray-900 dark:text-white">Total Amount + GST (18%)</td>
                                             <td className="px-3 py-2 text-right text-sm font-bold text-gray-900 dark:text-white">
-                                                {/* ₹{Number(order.total_amount).toFixed(2)} */}
-                                                ₹{(Number(order.total_amount) * 1.18).toFixed(2)}
-
-
+                                                ₹{totalWithGST.toFixed(2)}
                                             </td>
                                         </tr>
                                     </tfoot>

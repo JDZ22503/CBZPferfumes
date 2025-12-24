@@ -116,7 +116,7 @@ export default function Edit({ party, products = [], productSets = [], attars = 
                 product_id: type === 'p' ? parseInt(id) : undefined,
                 product_set_id: type === 's' ? parseInt(id) : undefined,
                 attar_id: type === 'a' ? parseInt(id) : undefined,
-                price: price
+                price: price === '' ? null : price
             };
         });
 
@@ -136,6 +136,38 @@ export default function Edit({ party, products = [], productSets = [], attars = 
         ...productSets.map(s => ({ ...s, type: 'set', key: `s_${s.id}` })),
         ...attars.map(a => ({ ...a, type: 'attar', key: `a_${a.id}` }))
     ];
+
+    const [viewMode, setViewMode] = React.useState<'mass' | 'single'>('mass');
+
+    const [massInputs, setMassInputs] = React.useState({
+        product: '',
+        set: '',
+        attar: '',
+    });
+
+    const applyMassPrice = (type: 'product' | 'set' | 'attar') => {
+        const price = massInputs[type];
+        if (!price) return;
+
+        const newPrices = { ...priceFormPrices };
+        allItems.forEach(item => {
+            if (item.type === type) {
+                newPrices[item.key] = price;
+            }
+        });
+        setPriceFormPrices(newPrices);
+        // Optional: Show a toast or feedback that prices were updated
+    };
+
+    const applyMassMRP = (type: 'product' | 'set' | 'attar') => {
+        const newPrices = { ...priceFormPrices };
+        allItems.forEach(item => {
+            if (item.type === type) {
+                newPrices[item.key] = '';
+            }
+        });
+        setPriceFormPrices(newPrices);
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -290,60 +322,136 @@ export default function Edit({ party, products = [], productSets = [], attars = 
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900 dark:text-gray-100">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Custom Product Prices</h2>
-                                <button
-                                    onClick={submitPrices}
-                                    disabled={false} // Maybe add a separate loading state
-                                    className="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                                >
-                                    Save Prices
-                                </button>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                                <div>
+                                    <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">Custom Product Prices</h2>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Manage override prices for this party.</p>
+                                </div>
+
+                                <div className="flex items-center gap-4">
+                                    <div className="bg-gray-100 dark:bg-gray-700 p-1 rounded-lg flex text-sm font-medium">
+                                        <button
+                                            onClick={() => setViewMode('mass')}
+                                            className={`px-3 py-1.5 rounded-md transition-colors ${viewMode === 'mass' ? 'bg-white dark:bg-gray-600 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                                        >
+                                            Mass Assign
+                                        </button>
+                                        <button
+                                            onClick={() => setViewMode('single')}
+                                            className={`px-3 py-1.5 rounded-md transition-colors ${viewMode === 'single' ? 'bg-white dark:bg-gray-600 shadow-sm text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'}`}
+                                        >
+                                            Individual Change
+                                        </button>
+                                    </div>
+
+                                    <button
+                                        onClick={submitPrices}
+                                        className="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 focus:bg-green-700 active:bg-green-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition ease-in-out duration-150"
+                                    >
+                                        Save Prices
+                                    </button>
+                                </div>
                             </div>
 
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                    <thead className="bg-gray-50 dark:bg-gray-700">
-                                        <tr>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Product Name</th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">SKU</th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Default Price</th>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Party Price (Override)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-                                        {allItems.map((item) => (
-                                            <tr key={item.key}>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="flex items-center">
-                                                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                                            {item.name}
-                                                            {item.type === 'set' && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">Set</span>}
-                                                            {item.type === 'attar' && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-800">Attar</span>}
-                                                        </div>
+                            {viewMode === 'mass' ? (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {[
+                                        { label: 'Products', type: 'product' as const, color: 'purple' },
+                                        { label: 'Gift Sets', type: 'set' as const, color: 'purple' },
+                                        { label: 'Attars', type: 'attar' as const, color: 'purple' }
+                                    ].map((cat) => (
+                                        <div key={cat.type} className={`bg-${cat.color}-50 dark:bg-${cat.color}-900/10 rounded-lg p-4 border border-${cat.color}-100 dark:border-${cat.color}-800`}>
+                                            <h3 className={`text-md font-semibold text-${cat.color}-900 dark:text-${cat.color}-100 mb-4`}>
+                                                All {cat.label}
+                                            </h3>
+
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Set Fixed Price</label>
+                                                    <div className="flex gap-2">
+                                                        <input
+                                                            type="number"
+                                                            placeholder="0.00"
+                                                            value={massInputs[cat.type]}
+                                                            onChange={(e) => setMassInputs({ ...massInputs, [cat.type]: e.target.value })}
+                                                            className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                        />
+                                                        <button
+                                                            onClick={() => applyMassPrice(cat.type)}
+                                                            className={`px-3 py-2 bg-${cat.color}-600 text-white rounded-md text-sm font-medium hover:bg-${cat.color}-700 focus:outline-none focus:ring-2 focus:ring-${cat.color}-500`}
+                                                        >
+                                                            Apply
+                                                        </button>
                                                     </div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-500 dark:text-gray-400">{item.sku}</div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <div className="text-sm text-gray-500 dark:text-gray-400">₹{item.cost_price}</div>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <input
-                                                        type="number"
-                                                        step="0.01"
-                                                        value={priceFormPrices[item.key] || ''}
-                                                        onChange={(e) => handlePriceChange(item.key, e.target.value)}
-                                                        placeholder={item.cost_price}
-                                                        className="block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2"
-                                                    />
-                                                </td>
+                                                </div>
+
+                                                <div className="relative">
+                                                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                                                        <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                                                    </div>
+                                                    <div className="relative flex justify-center">
+                                                        <span className="px-2 bg-${cat.color}-50 dark:bg-gray-800 text-xs text-gray-500">OR</span>
+                                                    </div>
+                                                </div>
+
+                                                <button
+                                                    onClick={() => applyMassMRP(cat.type)}
+                                                    className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                                                >
+                                                    Reset to Default MRP
+                                                </button>
+                                                <p className="text-xs text-gray-500 text-center mt-2">
+                                                    Will update {allItems.filter(i => i.type === cat.type).length} items
+                                                </p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                        <thead className="bg-gray-50 dark:bg-gray-700">
+                                            <tr>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Product Name</th>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">SKU</th>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Default Price</th>
+                                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Party Price (Override)</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                                            {allItems.map((item) => (
+                                                <tr key={item.key}>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="flex items-center">
+                                                            <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                {item.name}
+                                                                {item.type === 'set' && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">Set</span>}
+                                                                {item.type === 'attar' && <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-800">Attar</span>}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400">{item.sku}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <div className="text-sm text-gray-500 dark:text-gray-400">₹{item.cost_price}</div>
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap">
+                                                        <input
+                                                            type="number"
+                                                            step="0.01"
+                                                            value={priceFormPrices[item.key] || ''}
+                                                            onChange={(e) => handlePriceChange(item.key, e.target.value)}
+                                                            placeholder={item.cost_price}
+                                                            className="block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2"
+                                                        />
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -136,7 +136,7 @@ class PartyController extends Controller
             'prices.*.product_id' => 'nullable|exists:products,id',
             'prices.*.product_set_id' => 'nullable|exists:product_sets,id',
             'prices.*.attar_id' => 'nullable|exists:attars,id',
-            'prices.*.price' => 'required|numeric|min:0',
+            'prices.*.price' => 'nullable|numeric|min:0',
         ]);
 
         if (isset($validated['prices'])) {
@@ -144,7 +144,7 @@ class PartyController extends Controller
                  $conditions = [
                      'party_id' => $party->id,
                  ];
-                 
+
                  if (!empty($priceData['product_id'])) {
                      $conditions['product_id'] = $priceData['product_id'];
                      $conditions['product_set_id'] = null;
@@ -161,10 +161,16 @@ class PartyController extends Controller
                      continue;
                  }
 
-                 \App\Models\PartyProductPrice::updateOrCreate(
-                     $conditions,
-                     ['price' => $priceData['price']]
-                 );
+                 if (array_key_exists('price', $priceData) && is_null($priceData['price'])) {
+                     // If price is explicitly null, delete the record
+                     \App\Models\PartyProductPrice::where($conditions)->delete();
+                 } elseif (isset($priceData['price'])) {
+                     // Otherwise update or create
+                     \App\Models\PartyProductPrice::updateOrCreate(
+                         $conditions,
+                         ['price' => $priceData['price']]
+                     );
+                 }
              }
         }
 

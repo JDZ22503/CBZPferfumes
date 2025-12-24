@@ -217,7 +217,7 @@ export default function Index({ orders, filters }: Props) {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900 dark:text-white">
-                                                ₹{(Number(order.total_amount) * 1.18).toFixed(2)}
+                                                ₹{Number(order.total_amount).toFixed(2)}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <button

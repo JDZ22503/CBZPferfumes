@@ -5,6 +5,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import { Plus, Search, Package, DollarSign } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { debounce } from 'lodash';
+import Swal from 'sweetalert2';
 
 interface ProductSet {
     id: number;
@@ -116,7 +117,6 @@ export default function Index({ productSets, filters }: Props) {
                                 </div>
                                 <div className="mt-4 flex justify-between items-center text-sm text-gray-500 dark:text-gray-400 border-t pt-2 dark:border-gray-700">
                                     <div className="flex items-center">
-                                        <DollarSign className="h-4 w-4 mr-1" />
                                         Cost: ₹{Number(product.cost_price).toFixed(2)}
                                     </div>
                                     <div className="flex gap-3">
@@ -128,9 +128,19 @@ export default function Index({ productSets, filters }: Props) {
                                         </Link>
                                         <button
                                             onClick={() => {
-                                                if (confirm('Are you sure you want to delete this product set?')) {
-                                                    router.delete(route('product-sets.destroy', product.id));
-                                                }
+                                                Swal.fire({
+                                                    title: 'Are you sure?',
+                                                    text: "You won't be able to revert this!",
+                                                    icon: 'warning',
+                                                    showCancelButton: true,
+                                                    confirmButtonColor: '#3085d6',
+                                                    cancelButtonColor: '#d33',
+                                                    confirmButtonText: 'Yes, delete it!'
+                                                }).then((result) => {
+                                                    if (result.isConfirmed) {
+                                                        router.delete(route('product-sets.destroy', product.id));
+                                                    }
+                                                });
                                             }}
                                             className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                                         >
@@ -200,9 +210,19 @@ export default function Index({ productSets, filters }: Props) {
                                                 </Link>
                                                 <button
                                                     onClick={() => {
-                                                        if (confirm('Are you sure you want to delete this product set?')) {
-                                                            router.delete(route('product-sets.destroy', product.id));
-                                                        }
+                                                        Swal.fire({
+                                                            title: 'Are you sure?',
+                                                            text: "You won't be able to revert this!",
+                                                            icon: 'warning',
+                                                            showCancelButton: true,
+                                                            confirmButtonColor: '#3085d6',
+                                                            cancelButtonColor: '#d33',
+                                                            confirmButtonText: 'Yes, delete it!'
+                                                        }).then((result) => {
+                                                            if (result.isConfirmed) {
+                                                                router.delete(route('product-sets.destroy', product.id));
+                                                            }
+                                                        });
                                                     }}
                                                     className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                                                 >

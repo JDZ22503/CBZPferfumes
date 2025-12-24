@@ -71,14 +71,21 @@ class OrderController extends Controller
                 $totalAmount += $item['quantity'] * $item['unit_price'];
             }
 
+            // Apply GST
+            $settings = \App\Models\Setting::pluck('value', 'key'); // Optimized pluck
+            $gstRate = (float)($settings['gst_rate'] ?? 18);
+            $totalAmountWithGst = $totalAmount * (1 + ($gstRate / 100));
+
             $order = Order::create([
                 'party_id' => $validated['party_id'],
                 'order_date' => $validated['order_date'],
                 'status' => 'pending', 
                 'payment_status' => 'unpaid',
-                'total_amount' => $totalAmount,
+                'total_amount' => $totalAmountWithGst,
                 'type' => $validated['type'],
             ]);
+
+            $billItemsJson = [];
 
             foreach ($validated['items'] as $item) {
                 $productId = $item['product_id'] ?? null;
@@ -104,6 +111,16 @@ class OrderController extends Controller
                     $product = Attar::find($attarId);
                 }
 
+                // Add to Bill Items JSON
+                $billItemsJson[] = [
+                    'name' => $product->name,
+                    'sku' => $product->sku ?? '-',
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'total_price' => $item['quantity'] * $item['unit_price'],
+                    'type' => $productId ? 'product' : ($productSetId ? 'set' : 'attar'),
+                ];
+
                 if ($validated['type'] === 'sale') {
                     if ($product->stock) {
                         $product->stock()->decrement('quantity', $item['quantity']);
@@ -119,25 +136,37 @@ class OrderController extends Controller
 
             // Update Party Balance & Create Transaction
             $party = Party::find($validated['party_id']);
+            
+            // Save Bill Details Snapshot
+            $order->update([
+                'bill_details' => [
+                    'party_name' => $party->name,
+                    'party_phone' => $party->phone,
+                    'party_address' => $party->address,
+                    'party_email' => $party->email,
+                    'items' => $billItemsJson,
+                ]
+            ]);
+
             if ($validated['type'] === 'sale') {
-                $party->increment('balance', $totalAmount);
+                $party->increment('balance', $totalAmountWithGst);
                 
                 Transaction::create([
                     'party_id' => $party->id,
                     'order_id' => $order->id,
                     'type' => 'debit', // Debit the party (they owe us)
-                    'amount' => $totalAmount,
+                    'amount' => $totalAmountWithGst,
                     'description' => 'Sale Order #' . $order->id,
                     'transaction_date' => $validated['order_date'],
                 ]);
             } else {
-                $party->decrement('balance', $totalAmount);
+                $party->decrement('balance', $totalAmountWithGst);
 
                 Transaction::create([
                     'party_id' => $party->id,
                     'order_id' => $order->id,
                     'type' => 'credit', // Credit the party (we owe them)
-                    'amount' => $totalAmount,
+                    'amount' => $totalAmountWithGst,
                     'description' => 'Purchase Order #' . $order->id,
                     'transaction_date' => $validated['order_date'],
                 ]);
@@ -161,62 +190,155 @@ class OrderController extends Controller
             'status' => 'required|in:pending,completed,cancelled',
             'payment_status' => 'required|in:paid,unpaid,partial',
             'message' => 'nullable|string',
+            'items' => 'nullable|array',
+            'items.*.id' => 'required_with:items|exists:order_items,id',
+            'items.*.quantity' => 'required_with:items|integer|min:1',
+            'items.*.unit_price' => 'required_with:items|numeric|min:0',
         ]);
 
-        DB::transaction(function () use ($validated, $order) {
-            // Handle Payment Status Change
-            // 1. If changing to 'paid' (from unpaid/partial)
+        DB::transaction(function () use ($validated, $order, $request) {
+            // 1. Handle Item Updates (Qty, Price, Stock, Order Total)
+            if ($request->has('items')) {
+                $oldTotalWithGst = $order->total_amount;
+                $newSubTotal = 0;
+                $settings = \App\Models\Setting::pluck('value', 'key');
+                $gstRate = (float)($settings['gst_rate'] ?? 18);
+
+                foreach ($validated['items'] as $itemData) {
+                    $dbItem = OrderItem::find($itemData['id']);
+                    
+                    // Security check: ensure item belongs to order
+                    if ($dbItem->order_id !== $order->id) continue;
+
+                    $qtyDiff = $itemData['quantity'] - $dbItem->quantity;
+
+                    // Update Stock if quantity changed
+                    if ($qtyDiff != 0) {
+                        $product = $dbItem->product ?? $dbItem->productSet ?? $dbItem->attar;
+                        if ($product && $product->stock) {
+                            if ($order->type === 'sale') {
+                                // Sale: Increasing qty means decreasing stock
+                                if ($qtyDiff > 0) {
+                                    $product->stock()->decrement('quantity', $qtyDiff);
+                                } else {
+                                    $product->stock()->increment('quantity', abs($qtyDiff));
+                                }
+                            } else {
+                                // Purchase: Increasing qty means increasing stock
+                                if ($qtyDiff > 0) {
+                                    $product->stock()->increment('quantity', $qtyDiff);
+                                } else {
+                                    $product->stock()->decrement('quantity', abs($qtyDiff));
+                                }
+                            }
+                        }
+                    }
+
+                    // Update Item
+                    $dbItem->update([
+                        'quantity' => $itemData['quantity'],
+                        'unit_price' => $itemData['unit_price'],
+                        'total_price' => $itemData['quantity'] * $itemData['unit_price']
+                    ]);
+
+                    $newSubTotal += $dbItem->total_price;
+                }
+
+                $newTotalWithGst = $newSubTotal * (1 + ($gstRate / 100));
+                
+                // Update Order Total
+                $order->update(['total_amount' => $newTotalWithGst]);
+
+                // Update Party Balance
+                $diff = $newTotalWithGst - $oldTotalWithGst;
+                if ($diff != 0) {
+                     if ($order->type === 'sale') {
+                        $order->party()->increment('balance', $diff);
+                     } else {
+                        $order->party()->decrement('balance', $diff);
+                     }
+                }
+
+                // Update Original Transaction (The one created when order was made)
+                // We assume it's the one matching the order ID and type (debit for sale, credit for purchase) 
+                // AND description usually contains "Order #"
+                $transactionType = $order->type === 'sale' ? 'debit' : 'credit';
+                Transaction::where('order_id', $order->id)
+                    ->where('type', $transactionType)
+                    ->where('description', 'like', '%Order #%')
+                    ->update(['amount' => $newTotalWithGst]);
+                
+                // Force update of bill_details since items changed
+                $order->refresh(); // Reload items
+                $order->load(['party', 'items.product', 'items.productSet', 'items.attar']);
+                
+                $billItemsJson = [];
+                foreach ($order->items as $item) {
+                     $product = $item->product ?? $item->productSet ?? $item->attar;
+                     $billItemsJson[] = [
+                        'name' => $product ? $product->name : 'Unknown Item',
+                        'sku' => $product ? ($product->sku ?? '-') : '-',
+                        'quantity' => $item->quantity,
+                        'unit_price' => $item->unit_price,
+                        'total_price' => $item->total_price,
+                        'type' => $item->product_id ? 'product' : ($item->product_set_id ? 'set' : ($item->attar_id ? 'attar' : 'unknown')),
+                     ];
+                }
+                
+                $order->update([
+                    'bill_details' => [
+                        'party_name' => $order->party->name,
+                        'party_phone' => $order->party->phone,
+                        'party_address' => $order->party->address,
+                        'party_email' => $order->party->email,
+                        'items' => $billItemsJson,
+                    ]
+                ]);
+            }
+
+            // 2. Handle Payment Status Change (Existing Logic)
             if ($order->payment_status !== 'paid' && $validated['payment_status'] === 'paid') {
                 $party = $order->party;
                 if ($order->type === 'sale') {
-                    // Customer pays us. Reduce their debt (Balance goes down).
                     $party->decrement('balance', $order->total_amount);
-
                     Transaction::create([
                         'party_id' => $party->id,
                         'order_id' => $order->id,
-                        'type' => 'credit', // Credit the party account (payment received)
+                        'type' => 'credit',
                         'amount' => $order->total_amount,
                         'description' => 'Payment Received for Order #' . $order->id,
                         'transaction_date' => now(),
                     ]);
                 } else {
-                    // We pay supplier. Reduce our debt (Balance goes up, from negative towards zero).
                     $party->increment('balance', $order->total_amount);
-
                     Transaction::create([
                         'party_id' => $party->id,
                         'order_id' => $order->id,
-                        'type' => 'debit', // Debit the supplier account (payment made)
+                        'type' => 'debit',
                         'amount' => $order->total_amount,
                         'description' => 'Payment Made for Order #' . $order->id,
                         'transaction_date' => now(),
                     ]);
                 }
             }
-            // 2. If changing FROM 'paid' TO 'unpaid'/'partial' (Reverting payment)
             elseif ($order->payment_status === 'paid' && $validated['payment_status'] !== 'paid') {
                 $party = $order->party;
                 if ($order->type === 'sale') {
-                    // Revert: Increase balance back
                     $party->increment('balance', $order->total_amount);
-                    
                     Transaction::create([
                         'party_id' => $party->id,
                         'order_id' => $order->id,
-                        'type' => 'debit', // Revert: Debit again
+                        'type' => 'debit',
                         'amount' => $order->total_amount,
                         'description' => 'Payment Reverted for Order #' . $order->id,
                         'transaction_date' => now(),
                     ]);
                 } else {
-                    // Revert: Decrease balance back
                     $party->decrement('balance', $order->total_amount);
-
                     Transaction::create([
                         'party_id' => $party->id,
                         'order_id' => $order->id,
-                        'type' => 'credit', // Revert: Credit again
+                        'type' => 'credit',
                         'amount' => $order->total_amount,
                         'description' => 'Payment Reverted for Order #' . $order->id,
                         'transaction_date' => now(),
@@ -224,7 +346,40 @@ class OrderController extends Controller
                 }
             }
 
-            $order->update($validated);
+            // 3. Update Order Main Fields
+            $updateData = [
+                'status' => $validated['status'],
+                'payment_status' => $validated['payment_status'],
+                'message' => $validated['message'] ?? null,
+            ];
+            
+            // If we didn't update items logic above (e.g. no items in request - which shouldn't happen with our Modal but good fallback), we might need to backfill bill_details
+            if (!$request->has('items') && empty($order->bill_details)) {
+                 $order->load(['party', 'items.product', 'items.productSet', 'items.attar']);
+                 $billItemsJson = []; // ... (logic repeated or extract function? Let's just backfill if strictly needed, or rely on the fact user uses the modal which sends items now)
+                 // For now, assume modal usage. The logic from previous turn (backfill) is implicitly replaced.
+                 // If we want to keep backfill for status-only updates from other places:
+                 foreach ($order->items as $item) {
+                     $product = $item->product ?? $item->productSet ?? $item->attar;
+                     $billItemsJson[] = [
+                         'name' => $product ? $product->name : 'Unknown Item',
+                         'sku' => $product ? ($product->sku ?? '-') : '-',
+                         'quantity' => $item->quantity,
+                         'unit_price' => $item->unit_price,
+                         'total_price' => $item->total_price,
+                         'type' => $item->product_id ? 'product' : ($item->product_set_id ? 'set' : ($item->attar_id ? 'attar' : 'unknown')),
+                     ];
+                 }
+                 $updateData['bill_details'] = [
+                    'party_name' => $order->party->name,
+                    'party_phone' => $order->party->phone,
+                    'party_address' => $order->party->address,
+                    'party_email' => $order->party->email,
+                    'items' => $billItemsJson,
+                 ];
+            }
+
+            $order->update($updateData);
         });
 
         return back();

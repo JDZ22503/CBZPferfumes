@@ -46,7 +46,7 @@ class AttarController extends Controller
             'price' => 'required|numeric|min:0',
             'cost_price' => 'required|numeric|min:0',
             'hsn_code' => 'nullable|string|max:20',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:6048',
         ]);
 
         // Auto-generate SKU from name
@@ -101,7 +101,7 @@ class AttarController extends Controller
             'price' => 'required|numeric|min:0',
             'cost_price' => 'required|numeric|min:0',
             'hsn_code' => 'nullable|string|max:20',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:6048',
         ]);
 
         if ($request->hasFile('image')) {

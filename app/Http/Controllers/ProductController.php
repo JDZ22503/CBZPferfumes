@@ -45,7 +45,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'cost_price' => 'required|numeric|min:0',
             'hsn_code' => 'nullable|string|max:20',
-            'image' => 'nullable|image|max:2048', // Validate image file
+            'image' => 'nullable|image|max:6048', // Validate image file
         ]);
 
         // Auto-generate SKU from name
@@ -99,7 +99,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0',
             'cost_price' => 'required|numeric|min:0',
             'hsn_code' => 'nullable|string|max:20',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|max:6048',
         ]);
 
         // If name changes, regenerate SKU? 

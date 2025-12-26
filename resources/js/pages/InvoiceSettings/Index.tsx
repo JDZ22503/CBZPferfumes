@@ -22,6 +22,10 @@ interface SettingsForm {
         default_scheme: string;
         default_rt_rp: string;
         default_free: string;
+        bank_name: string;
+        account_no: string;
+        ifsc_code: string;
+        upi_id: string;
     }
 }
 
@@ -39,6 +43,10 @@ export default function InvoiceSettings({ settings }: Props) {
             default_scheme: settings.default_scheme || '',
             default_rt_rp: settings.default_rt_rp || '',
             default_free: settings.default_free || '',
+            bank_name: settings.bank_name || '',
+            account_no: settings.account_no || '',
+            ifsc_code: settings.ifsc_code || '',
+            upi_id: settings.upi_id || '',
         },
     });
 
@@ -140,13 +148,21 @@ export default function InvoiceSettings({ settings }: Props) {
                                         GST Rate (%)
                                     </label>
                                     <input
-                                        type="number"
+                                        type="text"
                                         id="gst_rate"
+                                        inputMode="decimal"
                                         value={data.settings.gst_rate}
-                                        onChange={(e) => setData('settings', { ...data.settings, gst_rate: e.target.value })}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/[^0-9.]/g, '');
+                                            // Allow only one decimal point
+                                            const parts = val.split('.');
+                                            const finalVal = parts.length > 2
+                                                ? parts[0] + '.' + parts.slice(1).join('')
+                                                : val;
+                                            setData('settings', { ...data.settings, gst_rate: finalVal });
+                                        }}
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                        min="0"
-                                        step="0.01"
+                                        placeholder="18"
                                     />
                                 </div>
 
@@ -235,6 +251,62 @@ export default function InvoiceSettings({ settings }: Props) {
                                         onChange={(e) => setData('settings', { ...data.settings, company_gstin: e.target.value })}
                                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                     />
+                                </div>
+
+                                {/* Bank Details Section */}
+                                <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+                                    <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Bank Details</h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label htmlFor="bank_name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Bank Name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="bank_name"
+                                                value={data.settings.bank_name}
+                                                onChange={(e) => setData('settings', { ...data.settings, bank_name: e.target.value })}
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="account_no" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Bank Account Number
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="account_no"
+                                                value={data.settings.account_no}
+                                                onChange={(e) => setData('settings', { ...data.settings, account_no: e.target.value })}
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="ifsc_code" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                IFSC Code
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="ifsc_code"
+                                                value={data.settings.ifsc_code}
+                                                onChange={(e) => setData('settings', { ...data.settings, ifsc_code: e.target.value })}
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="upi_id" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                UPI ID (for QR Code)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                id="upi_id"
+                                                value={data.settings.upi_id}
+                                                onChange={(e) => setData('settings', { ...data.settings, upi_id: e.target.value })}
+                                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm p-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                placeholder="e.g. username@bank"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 {/* Invoice Terms */}

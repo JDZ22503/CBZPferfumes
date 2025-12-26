@@ -246,6 +246,17 @@
                         <span class="bold">Rs. Apx :</span><br>
                         Rs. {{ number_format($grandTotal, 2) }}
                     </div>
+
+                    @if(!empty($settings['bank_name']) || !empty($settings['account_no']))
+                    <div style="padding: 10px; border-top: 1px solid #000;">
+                        <div class="bold small" style="text-decoration: underline; margin-bottom: 2px;">Bank Details:</div>
+                        <div class="small">
+                            @if(!empty($settings['bank_name'])) <strong>Bank:</strong> {{ $settings['bank_name'] }}<br> @endif
+                            @if(!empty($settings['account_no'])) <strong>A/C No:</strong> {{ $settings['account_no'] }}<br> @endif
+                            @if(!empty($settings['ifsc_code'])) <strong>IFSC:</strong> {{ $settings['ifsc_code'] }} @endif
+                        </div>
+                    </div>
+                    @endif
                 </td>
                 
                 <td width="40%" style="padding: 0; vertical-align: top; border-top: none;">
@@ -264,9 +275,30 @@
                         </tr>
                     </table>
                     
-                    <div style="text-align: right; padding: 40px 10px 10px; border-top: 1px solid #000;">
-                         <div class="small" style="margin-bottom: 30px;">For {{ $settings['company_name'] ?? 'CBZ PERFUMES' }}</div>
-                         <div class="bold small">Authorised Signatory</div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; padding: 10px; border-top: 1px solid #000; min-height: 80px;">
+                        <div>
+                            @if(!empty($settings['upi_id']))
+                                <div style="text-align: center;">
+                                    @php
+                                        // Clean UPI ID and properly format the URL
+                                        $upiId = str_replace(' ', '', $settings['upi_id']);
+                                        $companyName = rawurlencode($settings['company_name'] ?? 'CBZ PERFUMES');
+                                        $amount = number_format($grandTotal, 2, '.', '');
+                                        
+                                        $upiUrl = "upi://pay?pa={$upiId}&pn={$companyName}&am={$amount}&cu=INR";
+                                        // Increased size from 80 to 150 for better scanability
+                                        $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($upiUrl);
+                                    @endphp
+                                    <img src="{{ $qrUrl }}" alt="UPI QR" style="width: 100px; height: 100px; border: 1px solid #eee; padding: 2px;"><br>
+                                    <span style="font-size: 9px; font-weight: bold;">Scan to Pay</span><br>
+                                    <span style="font-size: 8px;">(Any UPI App)</span>
+                                </div>
+                            @endif
+                        </div>
+                        <div style="text-align: right;">
+                             <div class="small" style="margin-bottom: 30px;">For {{ $settings['company_name'] ?? 'CBZ PERFUMES' }}</div>
+                             <div class="bold small">Authorised Signatory</div>
+                        </div>
                     </div>
                 </td>
             </tr>

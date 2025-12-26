@@ -85,7 +85,7 @@ const breadcrumbs = [
 ];
 
 export default function Create({ parties, products, productSets, attars }: Props) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, transform } = useForm({
         party_id: '',
         order_date: new Date().toISOString().split('T')[0],
         type: 'sale',
@@ -238,7 +238,7 @@ export default function Create({ parties, products, productSets, attars }: Props
 
     const updateQuantity = (index: number, quantity: number) => {
         const newItems = [...data.items];
-        if (quantity > 0) {
+        if (quantity >= 0) {
             newItems[index].quantity = quantity;
             setData('items', newItems);
         }
@@ -256,7 +256,23 @@ export default function Create({ parties, products, productSets, attars }: Props
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-        post(route('orders.store'));
+
+        // Register transformation right before posting to filter out items with 0 quantity
+        transform((data) => ({
+            ...data,
+            items: data.items.filter(item => item.quantity > 0),
+        }));
+
+        if (data.items.filter(item => item.quantity > 0).length === 0) {
+            alert("Please add at least one item with quantity.");
+            return;
+        }
+
+        post(route('orders.store'), {
+            onSuccess: () => {
+                // Optional: success handling
+            },
+        });
     };
 
     const OrderDetailsContent = () => (
@@ -335,22 +351,35 @@ export default function Create({ parties, products, productSets, attars }: Props
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-0.5">
                                     <button
-                                        onClick={() => updateQuantity(index, item.quantity - 1)}
+                                        onClick={() => {
+                                            const newQty = item.quantity - 1;
+                                            if (newQty <= 0) removeItem(index);
+                                            else updateQuantity(index, newQty);
+                                        }}
                                         className="p-1.5 hover:bg-white dark:hover:bg-gray-600 rounded-md text-gray-600 dark:text-gray-300 transition-all shadow-sm"
                                     >
                                         <Minus className="h-3 w-3" />
                                     </button>
                                     <input
-                                        type="number"
-                                        value={item.quantity}
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={item.quantity === 0 ? '' : item.quantity}
                                         onChange={(e) => {
-                                            const val = parseInt(e.target.value);
-                                            if (!isNaN(val) && val >= 0) {
-                                                if (val === 0) removeItem(index);
-                                                else updateQuantity(index, val);
+                                            const valStr = e.target.value.replace(/[^0-9]/g, '');
+                                            if (valStr === '') {
+                                                updateQuantity(index, 0);
+                                                return;
+                                            }
+                                            const val = parseInt(valStr);
+                                            if (!isNaN(val)) {
+                                                updateQuantity(index, val);
                                             }
                                         }}
-                                        className="w-10 text-center text-sm font-semibold text-gray-900 dark:text-white bg-transparent border-none focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        onBlur={() => {
+                                            if (item.quantity <= 0) removeItem(index);
+                                        }}
+                                        className="w-10 text-center text-sm font-semibold text-gray-900 dark:text-white bg-transparent border-none focus:ring-0 p-0"
                                     />
                                     <button
                                         onClick={() => updateQuantity(index, item.quantity + 1)}
@@ -613,7 +642,7 @@ export default function Create({ parties, products, productSets, attars }: Props
                                                     )}
                                                 </div>
 
-                                                {quantity > 0 ? (
+                                                {cartItem ? (
                                                     <div className="flex items-center justify-between bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
                                                         <button
                                                             onClick={(e) => {
@@ -623,31 +652,51 @@ export default function Create({ parties, products, productSets, attars }: Props
                                                                     (item.type === 'set' && i.product_set_id === item.id) ||
                                                                     (item.type === 'attar' && i.attar_id === item.id)
                                                                 );
-                                                                if (itemIndex > -1) updateQuantity(itemIndex, quantity - 1);
+                                                                if (itemIndex > -1) {
+                                                                    const newQty = quantity - 1;
+                                                                    if (newQty <= 0) removeItem(itemIndex);
+                                                                    else updateQuantity(itemIndex, newQty);
+                                                                }
                                                             }}
                                                             className="p-1.5 hover:bg-white dark:hover:bg-gray-600 rounded-md text-gray-600 dark:text-gray-300 transition-all shadow-sm"
                                                         >
                                                             <Minus className="h-4 w-4" />
                                                         </button>
                                                         <input
-                                                            type="number"
-                                                            value={quantity}
+                                                            type="text"
+                                                            inputMode="numeric"
+                                                            pattern="[0-9]*"
+                                                            value={quantity === 0 ? '' : quantity}
                                                             onClick={(e) => e.stopPropagation()}
                                                             onChange={(e) => {
-                                                                const val = parseInt(e.target.value);
-                                                                if (!isNaN(val) && val >= 0) {
-                                                                    const itemIndex = data.items.findIndex(i =>
-                                                                        (item.type === 'product' && i.product_id === item.id) ||
-                                                                        (item.type === 'set' && i.product_set_id === item.id) ||
-                                                                        (item.type === 'attar' && i.attar_id === item.id)
-                                                                    );
-                                                                    if (itemIndex > -1) {
-                                                                        if (val === 0) removeItem(itemIndex);
-                                                                        else updateQuantity(itemIndex, val);
+                                                                const valStr = e.target.value.replace(/[^0-9]/g, '');
+                                                                const itemIndex = data.items.findIndex(i =>
+                                                                    (item.type === 'product' && i.product_id === item.id) ||
+                                                                    (item.type === 'set' && i.product_set_id === item.id) ||
+                                                                    (item.type === 'attar' && i.attar_id === item.id)
+                                                                );
+                                                                if (itemIndex > -1) {
+                                                                    if (valStr === '') {
+                                                                        updateQuantity(itemIndex, 0);
+                                                                        return;
+                                                                    }
+                                                                    const val = parseInt(valStr);
+                                                                    if (!isNaN(val)) {
+                                                                        updateQuantity(itemIndex, val);
                                                                     }
                                                                 }
                                                             }}
-                                                            className="w-12 text-center text-sm font-semibold text-gray-900 dark:text-white bg-transparent border-none focus:ring-0 p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                            onBlur={() => {
+                                                                const itemIndex = data.items.findIndex(i =>
+                                                                    (item.type === 'product' && i.product_id === item.id) ||
+                                                                    (item.type === 'set' && i.product_set_id === item.id) ||
+                                                                    (item.type === 'attar' && i.attar_id === item.id)
+                                                                );
+                                                                if (itemIndex > -1 && data.items[itemIndex].quantity <= 0) {
+                                                                    removeItem(itemIndex);
+                                                                }
+                                                            }}
+                                                            className="w-12 text-center text-sm font-semibold text-gray-900 dark:text-white bg-transparent border-none focus:ring-0 p-0"
                                                         />
                                                         <button
                                                             onClick={(e) => {

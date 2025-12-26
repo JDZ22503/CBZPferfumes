@@ -107,10 +107,8 @@ export default function Edit({ party, products = [], productSets = [], attars = 
         }));
     };
 
-    const submitPrices = (e: React.FormEvent) => {
-        e.preventDefault();
-
-        const payload = Object.entries(priceFormPrices).map(([key, price]) => {
+    const savePricesAction = (pricesMap: Record<string, string>) => {
+        const payload = Object.entries(pricesMap).map(([key, price]) => {
             const [type, id] = key.split('_');
             return {
                 product_id: type === 'p' ? parseInt(id) : undefined,
@@ -128,6 +126,11 @@ export default function Edit({ party, products = [], productSets = [], attars = 
                 // maybe show toast
             }
         });
+    };
+
+    const submitPrices = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        savePricesAction(priceFormPrices);
     };
 
     // Combine products and sets
@@ -156,7 +159,7 @@ export default function Edit({ party, products = [], productSets = [], attars = 
             }
         });
         setPriceFormPrices(newPrices);
-        // Optional: Show a toast or feedback that prices were updated
+        savePricesAction(newPrices);
     };
 
     const applyMassMRP = (type: 'product' | 'set' | 'attar') => {
@@ -167,6 +170,7 @@ export default function Edit({ party, products = [], productSets = [], attars = 
             }
         });
         setPriceFormPrices(newPrices);
+        savePricesAction(newPrices);
     };
 
     return (
@@ -370,10 +374,18 @@ export default function Edit({ party, products = [], productSets = [], attars = 
                                                     <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Set Fixed Price</label>
                                                     <div className="flex gap-2">
                                                         <input
-                                                            type="number"
+                                                            type="text"
+                                                            inputMode="decimal"
                                                             placeholder="0.00"
                                                             value={massInputs[cat.type]}
-                                                            onChange={(e) => setMassInputs({ ...massInputs, [cat.type]: e.target.value })}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value.replace(/[^0-9.]/g, '');
+                                                                const parts = val.split('.');
+                                                                const finalVal = parts.length > 2
+                                                                    ? parts[0] + '.' + parts.slice(1).join('')
+                                                                    : val;
+                                                                setMassInputs({ ...massInputs, [cat.type]: finalVal });
+                                                            }}
                                                             className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                                         />
                                                         <button
@@ -438,10 +450,17 @@ export default function Edit({ party, products = [], productSets = [], attars = 
                                                     </td>
                                                     <td className="px-6 py-4 whitespace-nowrap">
                                                         <input
-                                                            type="number"
-                                                            step="0.01"
+                                                            type="text"
+                                                            inputMode="decimal"
                                                             value={priceFormPrices[item.key] || ''}
-                                                            onChange={(e) => handlePriceChange(item.key, e.target.value)}
+                                                            onChange={(e) => {
+                                                                const val = e.target.value.replace(/[^0-9.]/g, '');
+                                                                const parts = val.split('.');
+                                                                const finalVal = parts.length > 2
+                                                                    ? parts[0] + '.' + parts.slice(1).join('')
+                                                                    : val;
+                                                                handlePriceChange(item.key, finalVal);
+                                                            }}
                                                             placeholder={item.cost_price}
                                                             className="block w-32 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white px-3 py-2"
                                                         />

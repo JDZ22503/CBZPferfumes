@@ -121,4 +121,44 @@ class PartyController extends Controller
         $party->delete();
         return response()->json(['message' => 'Party deleted successfully']);
     }
+
+    public function getPrices(Party $party)
+    {
+        return response()->json($party->productPrices);
+    }
+
+    public function updatePrices(Request $request, Party $party)
+    {
+        $validated = $request->validate([
+            'prices' => 'required|array',
+            'prices.*.product_id' => 'nullable|exists:products,id',
+            'prices.*.product_set_id' => 'nullable|exists:product_sets,id',
+            'prices.*.attar_id' => 'nullable|exists:attars,id',
+            'prices.*.price' => 'nullable|numeric|min:0',
+        ]);
+
+        // Delete all existing prices for this party
+        PartyProductPrice::where('party_id', $party->id)->delete();
+
+        // Insert new prices
+        foreach ($validated['prices'] as $priceData) {
+            // Skip if price is null or empty
+            if (!isset($priceData['price']) || $priceData['price'] === null || $priceData['price'] === '') {
+                continue;
+            }
+
+            PartyProductPrice::create([
+                'party_id' => $party->id,
+                'product_id' => $priceData['product_id'] ?? null,
+                'product_set_id' => $priceData['product_set_id'] ?? null,
+                'attar_id' => $priceData['attar_id'] ?? null,
+                'price' => $priceData['price'],
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Prices updated successfully',
+            'prices' => $party->fresh()->productPrices
+        ]);
+    }
 }

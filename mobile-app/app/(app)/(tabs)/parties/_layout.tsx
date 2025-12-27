@@ -4,24 +4,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions } from '@react-navigation/native';
 import { useAuth } from '../../../../src/context/AuthContext';
 
-export default function OrdersLayout() {
+export default function PartiesLayout() {
     const { logout } = useAuth();
-    const router = useRouter();
 
     return (
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen
                 name="index"
                 options={({ navigation }) => ({
-                    title: 'Orders',
+                    title: 'Parties',
                     headerShown: true,
-                    headerTitleAlign: 'left',
-                    headerTitleStyle: {
-                        fontWeight: 'bold',
-                        fontSize: 20,
-                    },
+                    headerLeftContainerStyle: { paddingLeft: 15 },
                     headerLeft: () => (
-                        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())} style={{ marginLeft: 15, marginRight: 15 }}>
+                        <TouchableOpacity onPress={() => navigation.dispatch(DrawerActions.openDrawer())}>
                             <Ionicons name="menu-outline" size={28} color="#000" />
                         </TouchableOpacity>
                     ),
@@ -32,8 +27,7 @@ export default function OrdersLayout() {
                     ),
                 })}
             />
-            <Stack.Screen name="create" options={{ title: 'New Order', headerShown: true }} />
-            <Stack.Screen name="[id]" options={{ title: 'Order Details', headerShown: true }} />
+            <Stack.Screen name="form" options={{ title: 'Party Details', headerShown: true }} />
         </Stack>
     );
 }

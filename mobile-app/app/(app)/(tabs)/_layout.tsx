@@ -30,10 +30,11 @@ export default function AppLayout() {
                 }}
             />
             <Tabs.Screen
-                name="products/index"
+                name="products"
                 options={{
                     title: 'Products',
                     href: null, // Hide from tab bar
+                    headerShown: false,
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="cube-outline" size={size} color={color} />
                     ),
@@ -50,29 +51,26 @@ export default function AppLayout() {
                 }}
             />
             <Tabs.Screen
-                name="attars/index"
+                name="attars"
                 options={{
                     title: 'Attars',
                     href: null, // Hide from tab bar
+                    headerShown: false,
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="flower-outline" size={size} color={color} />
                     ),
                 }}
             />
             <Tabs.Screen
-                name="parties/index"
+                name="parties"
                 options={{
                     title: 'Parties',
+                    headerShown: false,
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="people-outline" size={size} color={color} />
                     ),
                 }}
             />
-
-            {/* Hide Form Routes from Tab Bar */}
-            <Tabs.Screen name="products/form" options={{ href: null }} />
-            <Tabs.Screen name="attars/form" options={{ href: null }} />
-            <Tabs.Screen name="parties/form" options={{ href: null }} />
 
             {/* Other routes to keep Tab Bar visible */}
             <Tabs.Screen name="inventory" options={{ href: null }} />

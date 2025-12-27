@@ -7,10 +7,12 @@ import FormField from '../../../../src/components/FormField';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Picker } from '@react-native-picker/picker';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ProductSelector from '../../../../src/components/ProductSelector';
 
 // Helper for Party Selection Modal (Simple List)
 const PartySelector = ({ visible, onClose, onSelect }: any) => {
+    const insets = useSafeAreaInsets();
     const [query, setQuery] = useState('');
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -37,7 +39,7 @@ const PartySelector = ({ visible, onClose, onSelect }: any) => {
 
     return (
         <Modal visible={visible} animationType="slide">
-            <View style={styles.modalContainer}>
+            <View style={[styles.modalContainer, { paddingTop: insets.top }]}>
                 <View style={styles.modalHeader}>
                     <TouchableOpacity onPress={onClose}><Ionicons name="close" size={24} /></TouchableOpacity>
                     <TextInput
@@ -405,7 +407,7 @@ const styles = StyleSheet.create({
     disabledBtn: { backgroundColor: '#a5d6a7' },
     submitBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
     // Modal
-    modalContainer: { flex: 1, marginTop: 50, backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
+    modalContainer: { flex: 1, backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
     modalHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
     searchInput: { flex: 1, borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, marginLeft: 10 },
     listItem: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },

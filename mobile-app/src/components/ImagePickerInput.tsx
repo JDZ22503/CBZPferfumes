@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image, StyleSheet, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, Alert, ActionSheetIOS, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -10,17 +10,16 @@ interface Props {
 }
 
 export default function ImagePickerInput({ imageUri, onImageSelected, label = 'Image' }: Props) {
-    const pickImage = async () => {
-        // Request permission
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const takePhoto = async () => {
+        // Request camera permission
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
-            Alert.alert('Permission needed', 'Sorry, we need camera roll permissions to work this!');
+            Alert.alert('Permission needed', 'Sorry, we need camera permissions to take photos!');
             return;
         }
 
-        const result = await ImagePicker.launchImageLibraryAsync({
-            // @ts-ignore: handling deprecation or type mismatch
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.7,
@@ -31,10 +30,69 @@ export default function ImagePickerInput({ imageUri, onImageSelected, label = 'I
         }
     };
 
+    const pickFromGallery = async () => {
+        // Request permission
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Permission needed', 'Sorry, we need gallery permissions to select photos!');
+            return;
+        }
+
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+        });
+
+        if (!result.canceled) {
+            onImageSelected(result.assets[0].uri);
+        }
+    };
+
+    const showImageOptions = () => {
+        if (Platform.OS === 'ios') {
+            ActionSheetIOS.showActionSheetWithOptions(
+                {
+                    options: ['Cancel', 'Take Photo', 'Choose from Gallery'],
+                    cancelButtonIndex: 0,
+                },
+                (buttonIndex) => {
+                    if (buttonIndex === 1) {
+                        takePhoto();
+                    } else if (buttonIndex === 2) {
+                        pickFromGallery();
+                    }
+                }
+            );
+        } else {
+            // For Android, show Alert with options
+            Alert.alert(
+                'Select Image',
+                'Choose an option',
+                [
+                    {
+                        text: 'Take Photo',
+                        onPress: takePhoto,
+                    },
+                    {
+                        text: 'Choose from Gallery',
+                        onPress: pickFromGallery,
+                    },
+                    {
+                        text: 'Cancel',
+                        style: 'cancel',
+                    },
+                ],
+                { cancelable: true }
+            );
+        }
+    };
+
     return (
         <View style={styles.container}>
             <Text style={styles.label}>{label}</Text>
-            <TouchableOpacity onPress={pickImage} style={styles.picker}>
+            <TouchableOpacity onPress={showImageOptions} style={styles.picker}>
                 {imageUri ? (
                     <Image source={{ uri: imageUri }} style={styles.image} />
                 ) : (

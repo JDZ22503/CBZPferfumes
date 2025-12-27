@@ -23,10 +23,10 @@ export default function ProductForm() {
         defaultValues: {
             name: '',
             sku: '',
+            hsn_code: '',
             category_id: '',
             price: '',
             cost_price: '',
-            stock: '0',
         }
     });
 
@@ -46,10 +46,10 @@ export default function ProductForm() {
             const data = res.data;
             setValue('name', data.name);
             setValue('sku', data.sku);
+            setValue('hsn_code', data.hsn_code || '');
             setValue('category_id', data.category_id?.toString() || '');
             setValue('price', data.price?.toString() || '');
             setValue('cost_price', data.cost_price?.toString() || '');
-            setValue('stock', data.stock?.quantity?.toString() || '0'); // Assuming stock relation
 
             if (data.image_path) {
                 const cleanImg = data.image_path.startsWith('/') ? data.image_path : `/${data.image_path}`;
@@ -58,9 +58,12 @@ export default function ProductForm() {
                     : `${CLOUD_URL_PREFIX}${cleanImg}`;
                 setImageUri(img);
             }
-        } catch (e) {
-            Alert.alert('Error', 'Failed to load product data');
-            router.back();
+        } catch (e: any) {
+            console.error('Fetch error:', e);
+            const status = e.response?.status;
+            const message = e.response?.data?.message || e.message;
+            Alert.alert('Error', `Failed to load product data (${status || 'Unknown'}): ${message}`);
+            router.replace('/(app)/(tabs)/products' as any);
         } finally {
             setLoading(false);
         }
@@ -72,9 +75,9 @@ export default function ProductForm() {
             const formData = new FormData();
             formData.append('name', data.name);
             formData.append('sku', data.sku);
+            if (data.hsn_code) formData.append('hsn_code', data.hsn_code);
             formData.append('price', data.price);
             formData.append('cost_price', data.cost_price);
-            // formData.append('stock', data.stock); // Stock might be handled separately or via this endpoint
 
             if (imageUri && !imageUri.startsWith('http')) {
                 const filename = imageUri.split('/').pop() || 'upload.jpg';
@@ -125,6 +128,12 @@ export default function ProductForm() {
                     label="SKU"
                     placeholder="Leave empty to auto-generate"
                 />
+                <FormField
+                    control={control}
+                    name="hsn_code"
+                    label="HSN Code"
+                    placeholder="Enter HSN Code"
+                />
 
                 {/* Category Picker could go here if categories API exists */}
 
@@ -148,15 +157,6 @@ export default function ProductForm() {
                         />
                     </View>
                 </View>
-
-                {!isEdit && (
-                    <FormField
-                        control={control}
-                        name="stock"
-                        label="Initial Stock"
-                        keyboardType="numeric"
-                    />
-                )}
 
                 <TouchableOpacity
                     style={[styles.submitBtn, loading && styles.disabledBtn]}

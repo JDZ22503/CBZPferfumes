@@ -22,6 +22,8 @@ Route::middleware(['auth:sanctum'])->name('api.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index']);
     
     Route::apiResource('products', ProductController::class);
+    Route::get('parties/{party}/prices', [PartyController::class, 'getPrices']);
+    Route::put('parties/{party}/prices', [PartyController::class, 'updatePrices']);
     Route::apiResource('parties', PartyController::class);
     Route::apiResource('orders', OrderController::class);
     Route::apiResource('attars', AttarController::class);

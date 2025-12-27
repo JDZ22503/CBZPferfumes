@@ -5,6 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import client from '../../../../src/api/client';
 import { IMAGE_BASE_URL } from '../../../../src/api/config';
 import FloatingActionButton from '../../../../src/components/FloatingActionButton'; // Adjust path
+import PriceChangeModal from '../../../../src/components/PriceChangeModal';
 
 const getImageUrl = (path: string) => {
     if (!path) return 'https://via.placeholder.com/100';
@@ -20,6 +21,8 @@ export default function Parties() {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    const [priceModalVisible, setPriceModalVisible] = useState(false);
+    const [selectedParty, setSelectedParty] = useState<any>(null);
 
     const fetchParties = async (pageNum: number, shouldRefresh = false) => {
         try {
@@ -93,6 +96,15 @@ export default function Parties() {
                 </Text>
             </View>
             <View style={styles.actions}>
+                <TouchableOpacity
+                    onPress={() => {
+                        setSelectedParty(item);
+                        setPriceModalVisible(true);
+                    }}
+                    style={styles.priceBtn}
+                >
+                    <Ionicons name="pricetag-outline" size={20} color="#6366F1" />
+                </TouchableOpacity>
                 <TouchableOpacity onPress={() => deleteParty(item.id)} style={styles.deleteBtn}>
                     <Ionicons name="trash-outline" size={20} color="#EF4444" />
                 </TouchableOpacity>
@@ -124,6 +136,18 @@ export default function Parties() {
                 />
             )}
             <FloatingActionButton onPress={() => router.push('/(app)/(tabs)/parties/form' as any)} />
+
+            {selectedParty && (
+                <PriceChangeModal
+                    visible={priceModalVisible}
+                    onClose={() => {
+                        setPriceModalVisible(false);
+                        setSelectedParty(null);
+                    }}
+                    partyId={selectedParty.id}
+                    partyName={selectedParty.name}
+                />
+            )}
         </View>
     );
 }
@@ -184,8 +208,13 @@ const styles = StyleSheet.create({
     },
     actions: {
         paddingLeft: 10,
+        flexDirection: 'row',
+        gap: 8,
         justifyContent: 'center',
         alignItems: 'center'
+    },
+    priceBtn: {
+        padding: 8,
     },
     deleteBtn: {
         padding: 8,

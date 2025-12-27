@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, FlatList, Image, ActivityIndicator, Dimensions } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import client from '../api/client';
 import { IMAGE_BASE_URL } from '../api/config';
 
@@ -17,6 +18,7 @@ interface ProductSelectorProps {
 }
 
 const ProductSelector: React.FC<ProductSelectorProps> = ({ visible, onClose, onSelect, priceType, customPrices, currentItems }) => {
+    const insets = useSafeAreaInsets();
     const [activeTab, setActiveTab] = useState<'product' | 'gift' | 'attar'>('product');
     const [query, setQuery] = useState('');
     const [items, setItems] = useState<any[]>([]);
@@ -154,7 +156,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({ visible, onClose, onS
 
     return (
         <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
-            <View style={styles.container}>
+            <View style={[styles.container, { paddingTop: insets.top }]}>
                 <View style={styles.header}>
                     <Text style={styles.headerTitle}>Select Item</Text>
                     <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -205,7 +207,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({ visible, onClose, onS
                 )}
 
                 {/* Confirm Button Footer */}
-                <View style={styles.footer}>
+                <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
                     <TouchableOpacity style={styles.confirmButton} onPress={onClose}>
                         <Text style={styles.confirmButtonText}>Confirm Order / Done</Text>
                     </TouchableOpacity>

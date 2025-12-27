@@ -21,10 +21,9 @@ export default function ProductSetForm() {
         defaultValues: {
             name: '',
             sku: '',
+            hsn_code: '',
             price: '',
             cost_price: '',
-            stock: '0',
-            description: ''
         }
     });
 
@@ -36,15 +35,16 @@ export default function ProductSetForm() {
 
     const loadData = async () => {
         try {
+            console.log('Fetching product set with ID:', id);
             setLoading(true);
             const res = await client.get(`/product-sets/${id}`);
             const data = res.data;
+            console.log('Loaded product set data:', data);
             setValue('name', data.name);
             setValue('sku', data.sku);
+            setValue('hsn_code', data.hsn_code || '');
             setValue('price', data.price?.toString() || '');
             setValue('cost_price', data.cost_price?.toString() || '');
-            setValue('stock', data.stock?.quantity?.toString() || '0');
-            setValue('description', data.description || '');
 
             if (data.image_path) {
                 const cleanImg = data.image_path.startsWith('/') ? data.image_path : `/${data.image_path}`;
@@ -53,9 +53,12 @@ export default function ProductSetForm() {
                     : `${CLOUD_URL_PREFIX}${cleanImg}`;
                 setImageUri(img);
             }
-        } catch (e) {
-            Alert.alert('Error', 'Failed to load product set data');
-            router.back();
+        } catch (e: any) {
+            console.error('Fetch error:', e);
+            const status = e.response?.status;
+            const message = e.response?.data?.message || e.message;
+            Alert.alert('Error', `Failed to load product set data (${status || 'Unknown'}): ${message}`);
+            router.replace('/(app)/(tabs)/product-sets' as any);
         } finally {
             setLoading(false);
         }
@@ -67,9 +70,9 @@ export default function ProductSetForm() {
             const formData = new FormData();
             formData.append('name', data.name);
             formData.append('sku', data.sku);
+            if (data.hsn_code) formData.append('hsn_code', data.hsn_code);
             formData.append('price', data.price);
             formData.append('cost_price', data.cost_price);
-            formData.append('description', data.description);
 
             if (imageUri && !imageUri.startsWith('http')) {
                 const filename = imageUri.split('/').pop() || 'upload.jpg';
@@ -103,7 +106,11 @@ export default function ProductSetForm() {
 
     return (
         <>
-            <Stack.Screen options={{ title: isEdit ? 'Edit Product Set' : 'Add Product Set' }} />
+            <Stack.Screen
+                options={{
+                    title: isEdit ? 'Edit Product Set' : 'Add Product Set',
+                }}
+            />
             <ScrollView contentContainerStyle={styles.container}>
                 <ImagePickerInput imageUri={imageUri} onImageSelected={setImageUri} label="Set Image" />
 
@@ -119,6 +126,12 @@ export default function ProductSetForm() {
                     name="sku"
                     label="SKU"
                     placeholder="Leave empty to auto-generate"
+                />
+                <FormField
+                    control={control}
+                    name="hsn_code"
+                    label="HSN Code"
+                    placeholder="Enter HSN Code"
                 />
 
                 <View style={styles.row}>
@@ -141,23 +154,6 @@ export default function ProductSetForm() {
                         />
                     </View>
                 </View>
-
-                <FormField
-                    control={control}
-                    name="description"
-                    label="Description"
-                    multiline
-                    numberOfLines={3}
-                />
-
-                {!isEdit && (
-                    <FormField
-                        control={control}
-                        name="stock"
-                        label="Initial Stock"
-                        keyboardType="numeric"
-                    />
-                )}
 
                 <TouchableOpacity
                     style={[styles.submitBtn, loading && styles.disabledBtn]}

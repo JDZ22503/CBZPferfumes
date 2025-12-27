@@ -21,9 +21,9 @@ export default function AttarForm() {
         defaultValues: {
             name: '',
             sku: '',
+            hsn_code: '',
             price: '',
             cost_price: '',
-            stock: '0',
         }
     });
 
@@ -40,9 +40,9 @@ export default function AttarForm() {
             const data = res.data;
             setValue('name', data.name);
             setValue('sku', data.sku);
+            setValue('hsn_code', data.hsn_code || '');
             setValue('price', data.price?.toString() || '');
             setValue('cost_price', data.cost_price?.toString() || '');
-            setValue('stock', data.stock?.quantity?.toString() || '0');
 
             if (data.image_path) {
                 const cleanImg = data.image_path.startsWith('/') ? data.image_path : `/${data.image_path}`;
@@ -51,9 +51,12 @@ export default function AttarForm() {
                     : `${CLOUD_URL_PREFIX}${cleanImg}`;
                 setImageUri(img);
             }
-        } catch (e) {
-            Alert.alert('Error', 'Failed to load data');
-            router.back();
+        } catch (e: any) {
+            console.error('Fetch error:', e);
+            const status = e.response?.status;
+            const message = e.response?.data?.message || e.message;
+            Alert.alert('Error', `Failed to load data (${status || 'Unknown'}): ${message}`);
+            router.replace('/(app)/(tabs)/attars' as any);
         } finally {
             setLoading(false);
         }
@@ -65,6 +68,7 @@ export default function AttarForm() {
             const formData = new FormData();
             formData.append('name', data.name);
             formData.append('sku', data.sku);
+            if (data.hsn_code) formData.append('hsn_code', data.hsn_code);
             formData.append('price', data.price);
             formData.append('cost_price', data.cost_price);
 
@@ -117,6 +121,12 @@ export default function AttarForm() {
                     label="SKU"
                     placeholder="Leave empty to auto-generate"
                 />
+                <FormField
+                    control={control}
+                    name="hsn_code"
+                    label="HSN Code"
+                    placeholder="Enter HSN Code"
+                />
 
                 <View style={styles.row}>
                     <View style={{ flex: 1, marginRight: 10 }}>
@@ -138,15 +148,6 @@ export default function AttarForm() {
                         />
                     </View>
                 </View>
-
-                {!isEdit && (
-                    <FormField
-                        control={control}
-                        name="stock"
-                        label="Initial Stock"
-                        keyboardType="numeric"
-                    />
-                )}
 
                 <TouchableOpacity
                     style={[styles.submitBtn, loading && styles.disabledBtn]}

@@ -19,7 +19,7 @@ export default function Login() {
         setLoading(true);
         try {
             const response = await client.post('/login', { email, password });
-            console.log('Login Response:', JSON.stringify(response.data, null, 2));
+            // console.log('Login Response:', JSON.stringify(response.data, null, 2));
 
             if (!response.data.token) {
                 Alert.alert('Login Error', 'No access token received from server');

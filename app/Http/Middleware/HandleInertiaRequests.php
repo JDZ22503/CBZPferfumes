@@ -36,7 +36,8 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+        $quote = str(Inspiring::quotes()->random());
+        [$message, $author] = $quote->contains('-') ? $quote->explode('-') : [$quote->toString(), ''];
         
         $settings = \App\Models\Setting::pluck('value', 'key')->all();
 

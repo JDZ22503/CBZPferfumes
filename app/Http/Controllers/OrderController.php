@@ -382,7 +382,7 @@ class OrderController extends Controller
             $order->update($updateData);
         });
 
-        return back();
+        return redirect()->route('orders.index');
     }
 
     public function print(Order $order)

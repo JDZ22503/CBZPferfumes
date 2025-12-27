@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import React, { useState } from 'react';
-import { dashboard, login } from '@/routes';
+import { dashboard } from '@/routes';
 import { Menu, X } from 'lucide-react';
 
 export default function FrontendNavbar() {
@@ -53,7 +53,7 @@ export default function FrontendNavbar() {
                         </Link>
                     ) : (
                         <>
-                            <Link href={login()}>
+                            <Link href={route('login')}>
                                 <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/10">
                                     Log in
                                 </Button>
@@ -94,7 +94,7 @@ export default function FrontendNavbar() {
                                 </Link>
                             ) : (
                                 <>
-                                    <Link href={login()} onClick={toggleMobileMenu} className="w-full">
+                                    <Link href={route('login')} onClick={toggleMobileMenu} className="w-full">
                                         <Button variant="ghost" className="w-full text-gray-300 hover:text-white hover:bg-white/10">
                                             Log in
                                         </Button>

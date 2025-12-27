@@ -174,7 +174,7 @@ class PartyController extends Controller
              }
         }
 
-        return back();
+        return redirect()->route('parties.index');
     }
 
     public function getPrices(Party $party)

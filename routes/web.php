@@ -17,67 +17,6 @@ use App\Http\Controllers\StockController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\AttarController;
 
-// Manually register Fortify View Routes (excluding register)
-use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController;
-use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
-use Laravel\Fortify\Http\Controllers\NewPasswordController;
-use Laravel\Fortify\Http\Controllers\ConfirmablePasswordController;
-use Laravel\Fortify\Http\Controllers\TwoFactorAuthenticatedSessionController;
-use Laravel\Fortify\Http\Controllers\EmailVerificationPromptController;
-use Laravel\Fortify\Http\Controllers\RegisteredUserController;
-
-// Disable default registration route (not needed since views are disabled, but explicit fallback prevents confusion if config reverts)
-// No manual definition for /register means it 404s automatically.
-// Disable default registration route
-Route::any('/register', function() {
-    abort(404);
-});
-Route::group(['middleware' => config('fortify.middleware', ['web'])], function () {
-    // Login
-    Route::get('/login', [AuthenticatedSessionController::class, 'create'])
-        ->middleware(['guest:'.config('fortify.guard')])
-        ->name('login');
-
-    // Password Reset...
-    if (Features::enabled(Features::resetPasswords())) {
-        Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
-            ->middleware(['guest:'.config('fortify.guard')])
-            ->name('password.request');
-
-        Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
-            ->middleware(['guest:'.config('fortify.guard')])
-            ->name('password.reset');
-    }
-
-    // Email Verification...
-    if (Features::enabled(Features::emailVerification())) {
-        Route::get('/email/verify', [EmailVerificationPromptController::class, '__invoke'])
-            ->middleware([config('fortify.auth_middleware', 'auth').':'.config('fortify.guard')])
-            ->name('verification.notice');
-    }
-
-    // Two Factor Authentication...
-    if (Features::enabled(Features::twoFactorAuthentication())) {
-        Route::get('/two-factor-challenge', [TwoFactorAuthenticatedSessionController::class, 'create'])
-            ->middleware(['guest:'.config('fortify.guard')])
-            ->name('two-factor.login');
-    }
-
-    // Confirm Password...
-    Route::get('/user/confirm-password', [ConfirmablePasswordController::class, 'show'])
-        ->middleware([config('fortify.auth_middleware', 'auth').':'.config('fortify.guard')])
-        ->name('password.confirm');
-
-    // Admin Registration...
-    if (Features::enabled(Features::registration())) {
-        Route::get('/admin/register', [RegisteredUserController::class, 'create'])
-            ->middleware(['guest:'.config('fortify.guard')])
-            ->name('admin.register');
-
-        Route::post('/admin/register', [RegisteredUserController::class, 'store'])
-            ->middleware(['guest:'.config('fortify.guard')]);
-    }
-});
 Route::get('/', function () {
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),

@@ -1,7 +1,6 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import client from '../../../../src/api/client'; // Up 3 levels
 import FloatingActionButton from '../../../../src/components/FloatingActionButton';
 
@@ -12,6 +11,7 @@ const formatDate = (dateString: string) => {
 
 export default function Orders() {
     const router = useRouter();
+    const { status } = useLocalSearchParams();
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
@@ -20,7 +20,11 @@ export default function Orders() {
 
     const fetchOrders = async (pageNum: number, shouldRefresh = false) => {
         try {
-            const response = await client.get(`/orders?page=${pageNum}`);
+            let url = `/orders?page=${pageNum}`;
+            if (status) {
+                url += `&status=${status}`;
+            }
+            const response = await client.get(url);
             const newData = response.data.data;
             if (pageNum === 1 || shouldRefresh) {
                 setOrders(newData);
@@ -40,7 +44,7 @@ export default function Orders() {
         useCallback(() => {
             setPage(1);
             fetchOrders(1, true);
-        }, [])
+        }, [status])
     );
 
     const loadMore = () => {
@@ -99,9 +103,9 @@ export default function Orders() {
                     <Text style={styles.amount}>₹{item.total_amount}</Text>
                 </View>
             </View>
-            <TouchableOpacity onPress={() => deleteOrder(item.id)} style={styles.deleteBtn}>
+            {/* <TouchableOpacity onPress={() => deleteOrder(item.id)} style={styles.deleteBtn}>
                 <Ionicons name="trash-outline" size={24} color="#EF4444" />
-            </TouchableOpacity>
+            </TouchableOpacity> */}
         </TouchableOpacity>
     );
 
@@ -122,7 +126,7 @@ export default function Orders() {
                     onRefresh={() => { setRefreshing(true); setPage(1); fetchOrders(1, true); }}
                 />
             )}
-            <FloatingActionButton onPress={() => router.push('/(app)/orders/create')} />
+            <FloatingActionButton onPress={() => router.push('/orders/create')} />
         </View>
     );
 }

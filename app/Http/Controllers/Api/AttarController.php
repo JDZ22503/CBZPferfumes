@@ -25,7 +25,8 @@ class AttarController extends Controller
             });
         }
 
-        $attars = $query->paginate(10);
+        $limit = $request->input('limit', 50);
+        $attars = $query->paginate($limit);
         return response()->json($attars);
     }
 

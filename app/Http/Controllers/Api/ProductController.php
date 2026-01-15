@@ -25,7 +25,9 @@ class ProductController extends Controller
             });
         }
 
-        $products = $query->paginate(10);
+        $limit = $request->input('limit', 1000);
+        \Illuminate\Support\Facades\Log::info('ProductController index hit. Limit: ' . $limit . ' Request Input: ' . json_encode($request->all()));
+        $products = $query->paginate($limit);
         return response()->json($products);
     }
 

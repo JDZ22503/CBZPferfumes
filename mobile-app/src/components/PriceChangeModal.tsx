@@ -1,16 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import React, { useEffect, useState } from 'react';
 import {
-    Modal,
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    ScrollView,
-    TextInput,
     ActivityIndicator,
     Alert,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import client from '../api/client';
 

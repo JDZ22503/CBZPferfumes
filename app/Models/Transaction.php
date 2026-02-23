@@ -11,6 +11,7 @@ class Transaction extends Model
         'party_id',
         'type',
         'amount',
+        'description',
         'payment_method',
         'payment_status',
         'transaction_date',

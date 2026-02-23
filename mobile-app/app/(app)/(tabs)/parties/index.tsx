@@ -84,7 +84,7 @@ export default function Parties() {
     const renderItem = ({ item }: { item: any }) => (
         <TouchableOpacity
             style={styles.itemContainer}
-            onPress={() => router.push(`/(app)/(tabs)/parties/form?id=${item.id}` as any)}
+            onPress={() => router.push(`/(app)/(tabs)/parties/${item.id}` as any)}
             activeOpacity={0.7}
         >
             <Image source={{ uri: getImageUrl(item.image_path) }} style={styles.image} />
@@ -104,6 +104,12 @@ export default function Parties() {
                     style={styles.priceBtn}
                 >
                     <Ionicons name="pricetag-outline" size={20} color="#6366F1" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() => router.push(`/(app)/(tabs)/parties/form?id=${item.id}` as any)}
+                    style={styles.priceBtn}
+                >
+                    <Ionicons name="create-outline" size={20} color="#10B981" />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => deleteParty(item.id)} style={styles.deleteBtn}>
                     <Ionicons name="trash-outline" size={20} color="#EF4444" />

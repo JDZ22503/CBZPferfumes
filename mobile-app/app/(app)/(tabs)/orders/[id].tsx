@@ -33,6 +33,8 @@ export default function OrderDetails() {
     const [items, setItems] = useState<any[]>([]);
     const [status, setStatus] = useState('');
     const [paymentStatus, setPaymentStatus] = useState('');
+    const [message, setMessage] = useState('');
+    const [messages, setMessages] = useState<any[]>([]);
     const [gstRate, setGstRate] = useState(18); // Default 18
 
 
@@ -45,6 +47,7 @@ export default function OrderDetails() {
             setItems(data.items || []);
             setStatus(data.status);
             setPaymentStatus(data.payment_status);
+            setMessages(data.messages || []);
 
             // Try fetch settings for GST if possible, or assume 18
             client.get('/dashboard').then(res => {
@@ -108,6 +111,7 @@ export default function OrderDetails() {
             const payload = {
                 status,
                 payment_status: paymentStatus,
+                message: message, // Send message
                 items: items.map(i => ({
                     id: i.id,
                     quantity: parseInt(i.quantity),
@@ -117,6 +121,7 @@ export default function OrderDetails() {
 
             await client.put(`/orders/${id}`, payload);
             Alert.alert('Success', 'Order updated successfully');
+            setMessage(''); // Clear message field
             fetchOrder(); // Refresh
         } catch (error) {
             console.error('Update Error:', error);
@@ -316,6 +321,19 @@ export default function OrderDetails() {
                             </View>
                         </View>
 
+                        <View style={styles.statusSection}>
+                            <Text style={styles.statusLabel}>MESSAGE</Text>
+                            <TextInput
+                                style={styles.textArea}
+                                value={message}
+                                onChangeText={setMessage}
+                                placeholder="Add a message or notes..."
+                                placeholderTextColor="#999"
+                                multiline
+                                numberOfLines={4}
+                            />
+                        </View>
+
                         <TouchableOpacity
                             style={styles.saveButton}
                             onPress={handleSave}
@@ -324,6 +342,25 @@ export default function OrderDetails() {
                             {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Save Changes</Text>}
                         </TouchableOpacity>
                     </View>
+
+                    {messages.length > 0 && (
+                        <View style={styles.card}>
+                            <View style={styles.cardHeader}>
+                                <Ionicons name="chatbubble-ellipses-outline" size={20} color={PRIMARY_COLOR} />
+                                <Text style={styles.cardTitle}>Message History</Text>
+                            </View>
+                            <View style={styles.historyContainer}>
+                                {messages.map((msg, index) => (
+                                    <View key={msg.id || index} style={styles.historyItem}>
+                                        <Text style={styles.historyMessage}>{msg.message}</Text>
+                                        <Text style={styles.historyDate}>
+                                            {new Date(msg.created_at).toLocaleDateString()} {new Date(msg.created_at).toLocaleTimeString()}
+                                        </Text>
+                                    </View>
+                                ))}
+                            </View>
+                        </View>
+                    )}
                 </View>
             </View>
         </ScrollView>
@@ -547,5 +584,35 @@ const styles = StyleSheet.create({
         fontSize: 10,
         fontWeight: 'bold',
         marginBottom: 8,
+    },
+    textArea: {
+        backgroundColor: '#fff',
+        borderRadius: 6,
+        borderWidth: 1,
+        borderColor: '#D1D5DB',
+        padding: 10,
+        height: 100,
+        color: '#111827',
+        fontSize: 14,
+        textAlignVertical: "top"
+    },
+    historyContainer: {
+        gap: 12,
+    },
+    historyItem: {
+        borderBottomWidth: 1,
+        borderBottomColor: '#F3F4F6',
+        paddingBottom: 10,
+        marginBottom: 2,
+    },
+    historyMessage: {
+        color: '#374151',
+        fontSize: 14,
+        marginBottom: 4,
+        lineHeight: 20,
+    },
+    historyDate: {
+        color: '#9CA3AF',
+        fontSize: 11,
     },
 });

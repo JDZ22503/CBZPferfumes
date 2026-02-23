@@ -138,7 +138,6 @@ export default function PartyForm() {
                                     style={styles.picker}
                                 >
                                     <Picker.Item label="Customer" value="customer" />
-                                    <Picker.Item label="Supplier" value="supplier" />
                                 </Picker>
                             )}
                         />

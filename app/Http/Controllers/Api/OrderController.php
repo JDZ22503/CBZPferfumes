@@ -12,6 +12,7 @@ use App\Models\Attar;
 use App\Models\Party;
 use App\Models\Transaction;
 use App\Models\Setting;
+use App\Models\OrderMessage;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
@@ -47,7 +48,7 @@ class OrderController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
-        $order = DB::transaction(function () use ($validated) {
+        $order = DB::transaction(function () use ($validated, $request) {
             $totalAmount = 0;
             foreach ($validated['items'] as $item) {
                 $totalAmount += $item['quantity'] * $item['unit_price'];
@@ -91,6 +92,8 @@ class OrderController extends Controller
                     $product = Attar::find($attarId);
                 }
 
+                /** @var \App\Models\Product|\App\Models\ProductSet|\App\Models\Attar $product */
+
                 $billItemsJson[] = [
                     'name' => $product->name,
                     'sku' => $product->sku ?? '-',
@@ -126,7 +129,7 @@ class OrderController extends Controller
             ]);
 
             if ($validated['type'] === 'sale') {
-                $party->increment('balance', $totalAmountWithGst);
+                Party::where('id', $party->id)->increment('balance', $totalAmountWithGst);
                 
                 Transaction::create([
                     'party_id' => $party->id,
@@ -137,7 +140,7 @@ class OrderController extends Controller
                     'transaction_date' => $validated['order_date'],
                 ]);
             } else {
-                $party->decrement('balance', $totalAmountWithGst);
+                Party::where('id', $party->id)->decrement('balance', $totalAmountWithGst);
 
                 Transaction::create([
                     'party_id' => $party->id,
@@ -149,15 +152,32 @@ class OrderController extends Controller
                 ]);
             }
 
+            if ($request->has('message') && !empty($request->message)) {
+                OrderMessage::create([
+                    'order_id' => $order->id,
+                    'message' => $request->message
+                ]);
+            }
+
             return $order;
         });
 
-        return response()->json($order, 201);
+        // Use method_exists check as a fallback if the user hasn't updated the model yet
+        $relations = ['party', 'items.product', 'items.productSet', 'items.attar'];
+        if (method_exists($order, 'messages')) {
+            $relations[] = 'messages';
+        }
+
+        return response()->json($order->load($relations), 201);
     }
 
     public function show(Order $order)
     {
-        return response()->json($order->load(['party', 'items.product', 'items.productSet', 'items.attar']));
+        $relations = ['party', 'items.product', 'items.productSet', 'items.attar'];
+        if (method_exists($order, 'messages')) {
+            $relations[] = 'messages';
+        }
+        return response()->json($order->load($relations));
     }
 
     public function update(Request $request, Order $order)
@@ -172,12 +192,12 @@ class OrderController extends Controller
             'items.*.unit_price' => 'required_with:items|numeric|min:0',
         ]);
 
-        $order = DB::transaction(function () use ($validated, $order) {
+        $order = DB::transaction(function () use ($validated, $order, $request) {
             // 1. Handle Status Changes (Payment logic) - Existing logic
             if ($order->payment_status !== 'paid' && $validated['payment_status'] === 'paid') {
                 $party = $order->party;
                 if ($order->type === 'sale') {
-                    $party->decrement('balance', $order->total_amount);
+                    Party::where('id', $party->id)->decrement('balance', $order->total_amount);
                     Transaction::create([
                         'party_id' => $party->id,
                         'order_id' => $order->id,
@@ -187,7 +207,7 @@ class OrderController extends Controller
                         'transaction_date' => now(),
                     ]);
                 } else {
-                    $party->increment('balance', $order->total_amount);
+                    Party::where('id', $party->id)->increment('balance', $order->total_amount);
                     Transaction::create([
                         'party_id' => $party->id,
                         'order_id' => $order->id,
@@ -201,7 +221,7 @@ class OrderController extends Controller
             elseif ($order->payment_status === 'paid' && $validated['payment_status'] !== 'paid') {
                 $party = $order->party;
                 if ($order->type === 'sale') {
-                    $party->increment('balance', $order->total_amount);
+                    Party::where('id', $party->id)->increment('balance', $order->total_amount);
                     Transaction::create([
                         'party_id' => $party->id,
                         'order_id' => $order->id,
@@ -211,7 +231,7 @@ class OrderController extends Controller
                         'transaction_date' => now(),
                     ]);
                 } else {
-                    $party->decrement('balance', $order->total_amount);
+                    Party::where('id', $party->id)->decrement('balance', $order->total_amount);
                     Transaction::create([
                         'party_id' => $party->id,
                         'order_id' => $order->id,
@@ -287,12 +307,28 @@ class OrderController extends Controller
                 ]);
             }
 
-            $order->update(collect($validated)->except(['items', 'total_amount'])->toArray()); // Total amount updated manually above
+            if ($request->has('message') && !empty($validated['message'])) {
+                 OrderMessage::create([
+                     'order_id' => $order->id,
+                     'message' => $validated['message']
+                 ]);
+                 
+                // Update latest message column
+                $order->message = $validated['message'];
+                $order->save();
+            }
+
+            $order->update(collect($validated)->except(['items', 'total_amount', 'message'])->toArray()); // Total amount updated manually above
 
             return $order;
         });
 
-        return response()->json($order);
+        $relations = ['party', 'items.product', 'items.productSet', 'items.attar'];
+        if (method_exists($order, 'messages')) {
+            $relations[] = 'messages';
+        }
+
+        return response()->json($order->load($relations));
     }
     public function downloadInvoice(Order $order)
     {

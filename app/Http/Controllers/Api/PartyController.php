@@ -65,7 +65,27 @@ class PartyController extends Controller
 
     public function show(Party $party)
     {
-        return response()->json($party->load('productPrices'));
+        $relations = ['productPrices'];
+        
+        // Safety check for transactions relationship
+        if (method_exists($party, 'transactions')) {
+            $relations[] = 'transactions';
+            
+            // Safety check for Nested order and messages
+            // We also check if the Transaction model itself has the 'order' method
+            if (class_exists(\App\Models\OrderMessage::class) && 
+                method_exists(\App\Models\Transaction::class, 'order')) {
+                 $relations[] = 'transactions.order.messages';
+            }
+        } else if (method_exists($party, 'orders')) {
+            // Fallback to orders if transactions relationship is missing
+            $relations[] = 'orders';
+            if (class_exists(\App\Models\OrderMessage::class)) {
+                 $relations[] = 'orders.messages';
+            }
+        }
+
+        return response()->json($party->load($relations));
     }
 
     public function update(Request $request, Party $party)

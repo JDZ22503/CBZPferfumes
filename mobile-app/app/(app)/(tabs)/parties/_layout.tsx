@@ -28,6 +28,7 @@ export default function PartiesLayout() {
                 })}
             />
             <Stack.Screen name="form" options={{ title: 'Party Details', headerShown: true }} />
+            <Stack.Screen name="[id]" options={{ title: 'Party Details', headerShown: true }} />
         </Stack>
     );
 }

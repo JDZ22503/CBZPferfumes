@@ -21,4 +21,14 @@ class Party extends Model
     {
         return $this->hasMany(PartyProductPrice::class);
     }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class)->latest();
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class)->latest();
+    }
 }

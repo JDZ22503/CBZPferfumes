@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "ce517f19-72ac-4412-9b88-fc5ae6b6b5de"
+      }
+    },
+    "android": {
+      "package": "com.jensih.cbzpferfumes"
+    }
+  }
+}

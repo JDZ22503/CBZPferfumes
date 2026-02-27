@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Stock;
 
 class Product extends Model
 {
+    use HasFactory, SoftDeletes;
+
     protected $fillable = [
         'name',
         'sku',
@@ -23,6 +27,11 @@ class Product extends Model
     public function stock()
     {
         return $this->morphOne(Stock::class, 'stockable');
+    }
+
+    public function productDetail()
+    {
+        return $this->hasOne(ProductDetail::class);
     }
 
     protected $stockQuantityInput = null;

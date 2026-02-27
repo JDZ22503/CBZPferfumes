@@ -93,7 +93,7 @@ export default function Index({ attars, filters }: Props) {
                                     <div className="flex items-center gap-3">
                                         {attar.image_path ? (
                                             <img
-                                                src={attar.image_path}
+                                                src={`${import.meta.env.VITE_API_BASE_URL}${attar.image_path}`}
                                                 alt={attar.name}
                                                 className="h-12 w-12 rounded-lg object-cover bg-gray-100"
                                             />
@@ -171,7 +171,7 @@ export default function Index({ attars, filters }: Props) {
                                             <div className="flex items-center">
                                                 {attar.image_path ? (
                                                     <img
-                                                        src={attar.image_path}
+                                                        src={`${import.meta.env.VITE_API_BASE_URL}${attar.image_path}`}
                                                         alt={attar.name}
                                                         className="h-10 w-10 flex-shrink-0 rounded-full object-cover bg-gray-100"
                                                     />

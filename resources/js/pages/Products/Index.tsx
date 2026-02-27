@@ -93,7 +93,7 @@ export default function Index({ products, filters }: Props) {
                                     <div className="flex items-center gap-3">
                                         {product.image_path ? (
                                             <img
-                                                src={product.image_path}
+                                                src={`${import.meta.env.VITE_API_BASE_URL}${product.image_path}`}
                                                 alt={product.name}
                                                 className="h-12 w-12 rounded-lg object-cover bg-gray-100"
                                             />
@@ -171,7 +171,7 @@ export default function Index({ products, filters }: Props) {
                                             <div className="flex items-center">
                                                 {product.image_path ? (
                                                     <img
-                                                        src={product.image_path}
+                                                        src={`${import.meta.env.VITE_API_BASE_URL}${product.image_path}`}
                                                         alt={product.name}
                                                         className="h-10 w-10 flex-shrink-0 rounded-full object-cover bg-gray-100"
                                                     />

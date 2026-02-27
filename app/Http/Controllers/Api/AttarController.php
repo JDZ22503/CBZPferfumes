@@ -16,7 +16,9 @@ class AttarController extends Controller
     public function index(Request $request)
     {
         $search = $request->query('search', '');
-        $query = Attar::latest();
+        $query = Attar::whereHas('attarDetail', function ($q) {
+            $q->where('is_active', true);
+        })->latest();
 
         if ($search) {
             $query->where(function ($q) use ($search) {

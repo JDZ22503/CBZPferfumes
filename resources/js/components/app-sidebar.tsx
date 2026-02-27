@@ -13,7 +13,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, Users, Package, ShoppingCart, Box, Warehouse, Settings, Droplet } from 'lucide-react';
+import { LayoutGrid, Users, Package, ShoppingCart, Box, Warehouse, Settings, Droplet, Image as ImageIcon, Mail } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -59,6 +59,29 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
+const galleryNavItems: NavItem[] = [
+    {
+        title: 'Product Gallery',
+        href: route('product-details.index'),
+        icon: ImageIcon,
+    },
+    {
+        title: 'Gift Set Gallery',
+        href: route('gift-set-details.index'),
+        icon: ImageIcon,
+    },
+    {
+        title: 'Attar Gallery',
+        href: route('attar-details.index'),
+        icon: ImageIcon,
+    },
+    {
+        title: 'Contact Details',
+        href: route('contact-details.index'),
+        icon: Mail,
+    },
+];
+
 
 export function AppSidebar() {
     return (
@@ -76,7 +99,8 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={mainNavItems} label="Platform" />
+                <NavMain items={galleryNavItems} label="Gallery" />
             </SidebarContent>
 
             <SidebarFooter>

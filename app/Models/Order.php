@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\OrderMessage;
 use App\Models\Transaction;
 
 class Order extends Model
 {
+    use HasFactory, SoftDeletes;
+
     protected $fillable = [
         'party_id',
         'order_date',

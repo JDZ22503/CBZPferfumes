@@ -31,42 +31,52 @@ export default function PublicProducts({
 
                 <section className="py-12 relative overflow-hidden min-h-[50vh]">
                     <div className="container mx-auto px-6">
-                        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-16">
+                        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-12 mb-16">
                             {products.data.length > 0 ? (
-                                products.data.map((product) => (
-                                    <Link key={product.id} href={route('products.show', product.id)} className="group relative bg-black/40 rounded-3xl overflow-hidden border border-white/5 hover:border-amber-500/30 transition-all duration-500">
-                                        <div className="aspect-[3/4] bg-zinc-900 relative overflow-hidden">
-                                            {product.image_path ? (
-                                                <img
-                                                    src={`${import.meta.env.VITE_API_BASE_URL}${product.image_path}`}
-                                                    alt={product.name}
-                                                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                />
-                                            ) : (
-                                                <div className="absolute inset-0 flex items-center justify-center text-gray-800 font-serif text-6xl opacity-30 select-none">
-                                                    {product.name.charAt(0)}
+                                products.data.map((product) => {
+                                    let image = product.image_path;
+                                    const detail = product.product_detail;
+                                    if (!image && detail?.images && detail.images.length > 0) {
+                                        image = detail.images[0];
+                                    }
+
+                                    return (
+                                        <Link key={product.id} href={route('products.show', product.id)} className="group block bg-[#080808] p-3 rounded-[2.5rem] border border-white/5 hover:border-amber-500/20 transition-all duration-500 shadow-2xl">
+                                            <div className="aspect-[4/5] rounded-[2rem] overflow-hidden relative shadow-inner">
+                                                {image ? (
+                                                    <img
+                                                        src={`${import.meta.env.VITE_API_BASE_URL}${image}`}
+                                                        alt={product.name}
+                                                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale-[10%] group-hover:grayscale-0"
+                                                    />
+                                                ) : (
+                                                    <div className="absolute inset-0 flex items-center justify-center text-gray-800 font-serif text-6xl opacity-20 bg-zinc-900">
+                                                        {product.name.charAt(0)}
+                                                    </div>
+                                                )}
+                                                <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                            </div>
+                                            
+                                            <div className="mt-5 px-3 pb-2">
+                                                <h3 className="text-white font-bold text-xl group-hover:text-amber-500 transition-colors tracking-tight uppercase truncate">
+                                                    {product.name}
+                                                </h3>
+                                                <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.25em] mt-1 mb-6">
+                                                    Eau de Parfum
+                                                </p>
+                                                
+                                                <div className="flex items-center justify-between border-t border-white/5 pt-4 mt-2">
+                                                    <span className="text-white font-black text-2xl tracking-tighter">
+                                                        ₹{Number(product.price).toLocaleString()}
+                                                    </span>
+                                                    <div className="w-10 h-10 rounded-full bg-zinc-900 border border-white/10 flex items-center justify-center group-hover:bg-amber-500 group-hover:border-amber-400 transition-all duration-300">
+                                                        <ArrowRight className="w-5 h-5 text-white group-hover:text-black" />
+                                                    </div>
                                                 </div>
-                                            )}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                                                <Button className="w-full bg-white text-black hover:bg-amber-500 hover:text-white rounded-xl py-4 font-bold transition-all pointer-events-none">
-                                                    Discover Details
-                                                </Button>
                                             </div>
-                                        </div>
-                                        <div className="p-6">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <h3 className="font-bold text-xl group-hover:text-amber-500 transition-colors truncate pr-2">{product.name}</h3>
-                                            </div>
-                                            <p className="text-sm text-gray-500 mb-4 uppercase tracking-[0.2em] font-medium">Eau de Parfum</p>
-                                            <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                                <span className="font-bold text-white text-xl">₹{Number(product.price).toLocaleString()}</span>
-                                                <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500 transition-colors">
-                                                    <ArrowRight className="w-4 h-4 text-amber-500 group-hover:text-white" />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                ))
+                                        </Link>
+                                    );
+                                })
                             ) : (
                                 <div className="col-span-full text-center py-20 text-gray-500">
                                     No products found.
@@ -75,22 +85,22 @@ export default function PublicProducts({
                         </div>
 
                         {products.links.length > 3 && (
-                            <div className="flex justify-center gap-2 flex-wrap">
+                            <div className="flex justify-center gap-2 flex-wrap mt-12">
                                 {products.links.map((link, i) => (
                                     link.url ? (
                                         <Link
                                             key={i}
                                             href={link.url}
-                                            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${link.active
-                                                ? 'bg-amber-600 text-white'
-                                                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                                            className={`px-6 py-3 rounded-full text-sm font-bold uppercase tracking-widest transition-all duration-300 ${link.active
+                                                ? 'bg-amber-500 text-black shadow-[0_0_20px_rgba(245,158,11,0.3)]'
+                                                : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white border border-white/5'
                                                 }`}
                                             dangerouslySetInnerHTML={{ __html: link.label }}
                                         />
                                     ) : (
                                         <span
                                             key={i}
-                                            className="px-4 py-2 rounded-md text-sm font-medium bg-transparent text-gray-600 cursor-default"
+                                            className="px-6 py-3 rounded-full text-sm font-bold uppercase tracking-widest bg-transparent text-gray-700 cursor-default border border-transparent"
                                             dangerouslySetInnerHTML={{ __html: link.label }}
                                         />
                                     )

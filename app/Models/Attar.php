@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Stock;
 
 class Attar extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -33,6 +34,11 @@ class Attar extends Model
     public function stock()
     {
         return $this->morphOne(Stock::class, 'stockable');
+    }
+
+    public function attarDetail()
+    {
+        return $this->hasOne(AttarDetail::class);
     }
 
     protected $stockQuantityInput = null;

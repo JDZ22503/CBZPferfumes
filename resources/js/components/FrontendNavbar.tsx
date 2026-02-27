@@ -30,42 +30,23 @@ export default function FrontendNavbar() {
                                 C
                             </div>
                         )}
-                        <span className="text-lg font-bold tracking-wider text-white">
+                        {/* <span className="text-lg font-bold tracking-wider text-white">
                             {'PERFUMES'}
-                        </span>
+                        </span> */}
                     </Link>
                 </div>
 
                 {/* Desktop Navigation */}
                 <div className="hidden md:flex items-center gap-8 text-sm font-medium tracking-wide text-gray-300">
-
-                    <Link href={route('products.public')} className={`hover:text-amber-500 transition-colors ${route().current('products.public') ? 'text-amber-500' : ''}`}>PRODUCTS</Link>
+                    <Link href={route('collections')} className={`hover:text-amber-500 transition-colors ${route().current('collections') ? 'text-amber-500' : ''}`}>COLLECTIONS</Link>
+                    <Link href={route('products.public')} className={`hover:text-amber-500 transition-colors ${route().current('products.public') ? 'text-amber-500' : ''}`}>PERFUMES</Link>
                     <Link href={route('product-sets.public')} className={`hover:text-amber-500 transition-colors ${route().current('product-sets.public') ? 'text-amber-500' : ''}`}>GIFT SETS</Link>
                     <Link href={route('attars.public')} className={`hover:text-amber-500 transition-colors ${route().current('attars.public') ? 'text-amber-500' : ''}`}>ATTARS</Link>
                     <Link href={route('about')} className={`hover:text-amber-500 transition-colors ${route().current('about') ? 'text-amber-500' : ''}`}>ABOUT</Link>
                     <Link href={route('contact')} className={`hover:text-amber-500 transition-colors ${route().current('contact') ? 'text-amber-500' : ''}`}>CONTACT</Link>
                 </div>
 
-                {/* Desktop Auth Buttons */}
-                {/* <div className="hidden md:flex items-center gap-4">
 
-                    {auth.user ? (
-                        <Link href={dashboard()}>
-                            <Button variant="outline" className="border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-black transition-all">
-                                Dashboard
-                            </Button>
-                        </Link>
-                    ) : (
-                        <>
-                            <Link href={route('login')}>
-                                <Button variant="ghost" className="text-gray-300 hover:text-white hover:bg-white/10">
-                                    Log in
-                                </Button>
-                            </Link>
-
-                        </>
-                    )}
-                </div> */}
 
 
                 {/* Mobile Menu Toggle */}
@@ -81,33 +62,12 @@ export default function FrontendNavbar() {
                 <div className="md:hidden absolute top-16 left-0 w-full bg-black/95 border-b border-white/10 shadow-xl backdrop-blur-md">
                     <div className="flex flex-col p-6 space-y-4 text-center">
 
-                        <Link href={route('products.public')} onClick={toggleMobileMenu} className={`text-lg font-medium hover:text-amber-500 transition-colors ${route().current('products.public') ? 'text-amber-500' : 'text-gray-300'}`}>PRODUCTS</Link>
+                        <Link href={route('collections')} onClick={toggleMobileMenu} className={`text-lg font-medium hover:text-amber-500 transition-colors ${route().current('collections') ? 'text-amber-500' : 'text-gray-300'}`}>COLLECTIONS</Link>
+                        <Link href={route('products.public')} onClick={toggleMobileMenu} className={`text-lg font-medium hover:text-amber-500 transition-colors ${route().current('products.public') ? 'text-amber-500' : 'text-gray-300'}`}>PERFUMES</Link>
                         <Link href={route('product-sets.public')} onClick={toggleMobileMenu} className={`text-lg font-medium hover:text-amber-500 transition-colors ${route().current('product-sets.public') ? 'text-amber-500' : 'text-gray-300'}`}>GIFT SETS</Link>
                         <Link href={route('attars.public')} onClick={toggleMobileMenu} className={`text-lg font-medium hover:text-amber-500 transition-colors ${route().current('attars.public') ? 'text-amber-500' : 'text-gray-300'}`}>ATTARS</Link>
                         <Link href={route('about')} onClick={toggleMobileMenu} className={`text-lg font-medium hover:text-amber-500 transition-colors ${route().current('about') ? 'text-amber-500' : 'text-gray-300'}`}>ABOUT</Link>
                         <Link href={route('contact')} onClick={toggleMobileMenu} className={`text-lg font-medium hover:text-amber-500 transition-colors ${route().current('contact') ? 'text-amber-500' : 'text-gray-300'}`}>CONTACT</Link>
-
-                        {/* <div className="border-t border-white/10 pt-4 flex flex-col gap-3">
-
-                            {auth.user ? (
-                                <Link href={dashboard()} onClick={toggleMobileMenu} className="w-full">
-                                    <Button variant="outline" className="w-full border-amber-500/50 text-amber-500 hover:bg-amber-500 hover:text-black transition-all">
-                                        Dashboard
-                                    </Button>
-                                </Link>
-                            ) : (
-                                <>
-                                    <Link href={route('login')} onClick={toggleMobileMenu} className="w-full">
-                                        <Button variant="ghost" className="w-full text-gray-300 hover:text-white hover:bg-white/10">
-                                            Log in
-                                        </Button>
-                                    </Link>
-
-                                </>
-                            )}
-
-                        </div> */}
-
                     </div>
                 </div>
             )}

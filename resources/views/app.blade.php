@@ -41,7 +41,7 @@
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="CBZ Perfumes - Elegance in Every Drop">
+    <meta property="og:title" content="CBZ Perfumes - Fragrance Forever">
     <meta property="og:description"
         content="Discover the art of fine fragrance with CBZ Perfumes. Exceptional luxury scents handcrafted for the contemporary connoisseur.">
     <meta property="og:image" content="{{ asset('images/og-image.jpg') }}">
@@ -49,7 +49,7 @@
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="{{ url()->current() }}">
-    <meta property="twitter:title" content="CBZ Perfumes - Elegance in Every Drop">
+    <meta property="twitter:title" content="CBZ Perfumes - Fragrance Forever">
     <meta property="twitter:description"
         content="Discover the art of fine fragrance with CBZ Perfumes. Exceptional luxury scents handcrafted for the contemporary connoisseur.">
     <meta property="twitter:image" content="{{ asset('images/og-image.jpg') }}">
@@ -78,7 +78,7 @@
 
     @viteReactRefresh
     @routes
-    @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+    @vite(['resources/js/app.tsx'])
     @inertiaHead
 </head>
 

@@ -3,8 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use App\Models\ContactDetail;
 use App\Models\Product;
 use App\Models\ProductSet;
+use App\Models\Attar;
 use App\Models\Party;
 use App\Models\Order;
 use App\Models\Stock;
@@ -16,20 +18,46 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StockController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\AttarController;
+use App\Http\Controllers\ProductDetailController;
+use App\Http\Controllers\AttarDetailController;
+use App\Http\Controllers\ProductSetDetailController;
+use App\Http\Controllers\ContactDetailController;
 
 Route::get('/', function () {
+    $products = Product::with('productDetail')->whereHas('productDetail', function($q) { $q->where('is_active', true); })->latest()->take(2)->get();
+    $attars = Attar::with('attarDetail')->whereHas('attarDetail', function($q) { $q->where('is_active', true); })->latest()->take(2)->get();
+    $productSets = ProductSet::with('productSetDetail')->whereHas('productSetDetail', function($q) { $q->where('is_active', true); })->latest()->take(2)->get();
+
+    $latestItems = collect()
+        ->merge($products)
+        ->merge($attars)
+        ->merge($productSets)
+        ->sortByDesc('created_at')
+        ->take(4)
+        ->values()
+        ->all();
+
+    // Featured items for slider
+    $featuredProducts = Product::with('productDetail')->whereHas('productDetail', function($q) { $q->where('is_active', true)->where('is_featured', true); })->get();
+    $featuredAttars = Attar::with('attarDetail')->whereHas('attarDetail', function($q) { $q->where('is_active', true)->where('is_featured', true); })->get();
+    $featuredSets = ProductSet::with('productSetDetail')->whereHas('productSetDetail', function($q) { $q->where('is_active', true)->where('is_featured', true); })->get();
+
+    $featuredItems = collect()
+        ->merge($featuredProducts)
+        ->merge($featuredAttars)
+        ->merge($featuredSets)
+        ->sortByDesc('created_at')
+        ->values()
+        ->all();
+
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
-        'products' => Product::latest()->take(4)->get(),
+        'products' => $latestItems,
+        'featuredItems' => $featuredItems,
     ]);
 })->name('home');
 
-Route::get('/collections', function () {
-    return Inertia::render('collections', [
-        'products' => Product::latest()->paginate(10), // Pagination for 10 items per page
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
-})->name('collections');
+Route::get('/collections', [App\Http\Controllers\CollectionsController::class, 'index'])->name('collections');
 
 Route::get('/abilities', function () {
     return Inertia::render('abilities', [
@@ -98,6 +126,15 @@ Route::middleware(['auth', 'verified'])->prefix('cbz-admin')->group(function () 
     Route::resource('products', ProductController::class);
     Route::resource('product-sets', ProductSetController::class);
     Route::resource('attars', AttarController::class);
+    Route::resource('product-details', ProductDetailController::class);
+    Route::post('product-details/{productDetail}/toggle-status', [ProductDetailController::class, 'toggleStatus'])->name('product-details.toggle-status');
+    Route::post('product-details/{productDetail}/toggle-featured', [ProductDetailController::class, 'toggleFeatured'])->name('product-details.toggle-featured');
+    Route::resource('attar-details', AttarDetailController::class);
+    Route::post('attar-details/{attarDetail}/toggle-status', [AttarDetailController::class, 'toggleStatus'])->name('attar-details.toggle-status');
+    Route::post('attar-details/{attarDetail}/toggle-featured', [AttarDetailController::class, 'toggleFeatured'])->name('attar-details.toggle-featured');
+    Route::resource('gift-set-details', ProductSetDetailController::class);
+    Route::post('gift-set-details/{gift_set_detail}/toggle-status', [ProductSetDetailController::class, 'toggleStatus'])->name('gift-set-details.toggle-status');
+    Route::post('gift-set-details/{gift_set_detail}/toggle-featured', [ProductSetDetailController::class, 'toggleFeatured'])->name('gift-set-details.toggle-featured');
     Route::resource('orders', OrderController::class);
     Route::get('orders/{order}/print', [OrderController::class, 'print'])->name('orders.print');
     
@@ -109,6 +146,10 @@ Route::middleware(['auth', 'verified'])->prefix('cbz-admin')->group(function () 
     // Settings Routes
     Route::get('/invoice-settings', [SettingController::class, 'index'])->name('settings.index');
     Route::post('/invoice-settings', [SettingController::class, 'update'])->name('settings.update');
+
+    // Contact Details Routes
+    Route::get('/contact-details', [ContactDetailController::class, 'index'])->name('contact-details.index');
+    Route::post('/contact-details', [ContactDetailController::class, 'update'])->name('contact-details.update');
 });
 
 require __DIR__.'/settings.php';

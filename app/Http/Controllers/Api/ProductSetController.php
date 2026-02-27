@@ -13,7 +13,9 @@ class ProductSetController extends Controller
         \Illuminate\Support\Facades\Log::info('ProductSetController@index hit');
         $limit = $request->query('limit', 15);
         
-        $query = ProductSet::latest();
+        $query = ProductSet::whereHas('productSetDetail', function ($q) {
+            $q->where('is_active', true);
+        })->latest();
 
         if ($request->has('search')) {
             $search = $request->query('search');

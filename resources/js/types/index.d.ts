@@ -52,6 +52,14 @@ export interface Product {
     image_path: string | null;
     created_at: string;
     updated_at: string;
+    product_detail?: {
+        id: number;
+        description: string;
+        top_notes: string;
+        heart_notes: string;
+        base_notes: string;
+        images: string[];
+    };
 }
 
 export interface ProductSet {
@@ -63,6 +71,14 @@ export interface ProductSet {
     image_path: string | null;
     created_at: string;
     updated_at: string;
+    product_set_detail?: {
+        id: number;
+        description: string;
+        top_notes: string;
+        heart_notes: string;
+        base_notes: string;
+        images: string[];
+    };
 }
 
 export interface Attar {
@@ -74,6 +90,14 @@ export interface Attar {
     image_path: string | null;
     created_at: string;
     updated_at: string;
+    attar_detail?: {
+        id: number;
+        description: string;
+        top_notes: string;
+        heart_notes: string;
+        base_notes: string;
+        images: string[];
+    };
 }
 
 export interface PaginatedData<T> {

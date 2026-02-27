@@ -14,7 +14,9 @@ class AttarController extends Controller
     public function publicIndex(Request $request)
     {
         $search = $request->query('search', '');
-        $query = Attar::latest();
+        $query = Attar::with('attarDetail')->whereHas('attarDetail', function ($q) {
+            $q->where('is_active', true);
+        })->latest();
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%")
@@ -33,6 +35,13 @@ class AttarController extends Controller
 
     public function show(Attar $attar)
     {
+        $attar->load(['attarDetail' => function ($q) {
+            $q->where('is_active', true);
+        }]);
+        if (!$attar->attarDetail) {
+            abort(404);
+        }
+
         return Inertia::render('Attars/Show', [
             'attar' => $attar
         ]);

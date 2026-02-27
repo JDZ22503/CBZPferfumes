@@ -5,7 +5,8 @@ namespace App\Http\Middleware;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-
+use App\Models\ContactDetail;
+use App\Models\Setting;
 class HandleInertiaRequests extends Middleware
 {
     /**
@@ -39,7 +40,7 @@ class HandleInertiaRequests extends Middleware
         $quote = str(Inspiring::quotes()->random());
         [$message, $author] = $quote->contains('-') ? $quote->explode('-') : [$quote->toString(), ''];
         
-        $settings = \App\Models\Setting::pluck('value', 'key')->all();
+        $settings = Setting::pluck('value', 'key')->all();
 
         return [
             ...parent::share($request),
@@ -53,6 +54,7 @@ class HandleInertiaRequests extends Middleware
                 'company_name' => $settings['company_name'] ?? 'CBZ Perfumes',
                 'company_logo' => isset($settings['company_logo']) ? asset($settings['company_logo']) : null,
             ],
+            'contactDetails' => ContactDetail::first(),
         ];
     }
 }

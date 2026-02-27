@@ -16,7 +16,9 @@ class ProductController extends Controller
     public function index(Request $request)
     {
         $search = $request->query('search', '');
-        $query = Product::latest();
+        $query = Product::whereHas('productDetail', function ($q) {
+            $q->where('is_active', true);
+        })->latest();
 
         if ($search) {
             $query->where(function ($q) use ($search) {

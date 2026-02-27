@@ -16,7 +16,9 @@ class ProductSetController extends Controller
     public function publicIndex(Request $request)
     {
         $search = $request->query('search', '');
-        $query = ProductSet::latest();
+        $query = ProductSet::with('productSetDetail')->whereHas('productSetDetail', function ($q) {
+            $q->where('is_active', true);
+        })->latest();
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%")
@@ -35,6 +37,14 @@ class ProductSetController extends Controller
 
     public function show(ProductSet $productSet)
     {
+        $productSet->load(['productSetDetail' => function ($q) {
+            $q->where('is_active', true);
+        }]);
+
+        if (!$productSet->productSetDetail) {
+            abort(404);
+        }
+
         return Inertia::render('ProductSets/Show', [
             'productSet' => $productSet
         ]);

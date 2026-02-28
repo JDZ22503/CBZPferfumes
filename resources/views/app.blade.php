@@ -40,38 +40,48 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
+    <meta property="og:site_name" content="CBZ Perfumes">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="CBZ Perfumes - Fragrance Forever">
     <meta property="og:description"
         content="Discover the art of fine fragrance with CBZ Perfumes. Exceptional luxury scents handcrafted for the contemporary connoisseur.">
-    <meta property="og:image" content="{{ asset('images/og-image.jpg') }}">
+    <meta property="og:image" content="{{ asset('images/logo.png') }}">
+    <meta property="og:image:alt" content="CBZ Perfumes Logo">
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="{{ url()->current() }}">
-    <meta property="twitter:title" content="CBZ Perfumes - Fragrance Forever">
-    <meta property="twitter:description"
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="{{ url()->current() }}">
+    <meta name="twitter:title" content="CBZ Perfumes - Fragrance Forever">
+    <meta name="twitter:description"
         content="Discover the art of fine fragrance with CBZ Perfumes. Exceptional luxury scents handcrafted for the contemporary connoisseur.">
-    <meta property="twitter:image" content="{{ asset('images/og-image.jpg') }}">
+    <meta name="twitter:image" content="{{ asset('images/logo.png') }}">
 
-    <!-- Site Name for Google Search -->
-    <meta property="og:site_name" content="{{ config('app.name') }}">
-    <meta property="og:title" content="{{ config('app.name') }}">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ url()->current() }}">
-
+    <!-- Organization Structured Data for Google (logo + name) -->
     <script type="application/ld+json">
-        {
-          "@@context": "https://schema.org",
-          "@@type": "WebSite",
-          "name": "{{ config('app.name') }}",
-          "url": "{{ config('app.url') }}",
-          "logo": "{{ asset('favicon.png') }}"
-        }
-        </script>
+    {!! json_encode([
+        '@context' => 'https://schema.org',
+        '@type' => 'Organization',
+        'name' => 'CBZ Perfumes',
+        'url' => config('app.url'),
+        'logo' => asset('images/logo.png'),
+        'image' => asset('images/logo.png'),
+        'sameAs' => []
+    ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+    </script>
 
-    <link rel="icon" href="/favicon.png" type="image/png">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <!-- WebSite Structured Data for Google Search -->
+    <script type="application/ld+json">
+    {!! json_encode([
+        '@context' => 'https://schema.org',
+        '@type' => 'WebSite',
+        'name' => 'CBZ Perfumes',
+        'url' => config('app.url')
+    ], JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}
+    </script>
+
+    <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />

@@ -93,7 +93,7 @@ export default function Welcome({
                                     </span>
                                 </h1>
                                 <p className="text-lg text-gray-400 max-w-xl leading-relaxed font-light">
-                                    Experience the alchemy of rare ingredients and master craftsmanship. CBZ Perfumes redefines the art of scent for those who demand nothing but perfection.
+                                    Premium perfumes that match your personality. Whether it's for daily use or a special occasion, CBZ has the perfect fragrance for you — at prices that won't break the bank.
                                 </p>
                                 <div className="flex flex-col sm:flex-row gap-6 pt-6">
                                     <Link href={route('collections')}>
@@ -109,16 +109,16 @@ export default function Welcome({
                                 </div>
                                 <div className="pt-12 flex items-center gap-10 border-t border-white/10 max-w-lg">
                                     <div className="flex flex-col">
-                                        <span className="text-2xl font-bold text-white">100%*</span>
-                                        <span className="text-xs text-gray-500 uppercase tracking-widest">Natural</span>
+                                        <span className="text-2xl font-bold text-white">10k+</span>
+                                        <span className="text-xs text-gray-500 uppercase tracking-widest">Happy Customers</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-2xl font-bold text-white">24h*</span>
-                                        <span className="text-xs text-gray-500 uppercase tracking-widest">Lasting</span>
+                                        <span className="text-2xl font-bold text-white">60+</span>
+                                        <span className="text-xs text-gray-500 uppercase tracking-widest">Fragrances</span>
                                     </div>
                                     <div className="flex flex-col">
-                                        <span className="text-2xl font-bold text-white">Global</span>
-                                        <span className="text-xs text-gray-500 uppercase tracking-widest">Sourcing</span>
+                                        <span className="text-2xl font-bold text-white">100%</span>
+                                        <span className="text-xs text-gray-500 uppercase tracking-widest">Satisfaction Rate</span>
                                     </div>
                                 </div>
                             </div>
@@ -240,12 +240,12 @@ export default function Welcome({
                     <div className="container mx-auto px-6">
                         <div className="flex flex-col md:flex-row items-center gap-16">
                             <div className="w-full md:w-1/2">
-                                <h2 className="text-3xl md:text-4xl font-bold font-serif mb-8 text-amber-500 uppercase tracking-widest">The Art of Creation</h2>
+                                <h2 className="text-3xl md:text-4xl font-bold font-serif mb-8 text-amber-500 uppercase tracking-widest">Why Choose CBZ?</h2>
                                 <div className="space-y-12">
                                     {[
-                                        { step: "01", title: "Sourcing", desc: "Rare botanicals and essential oils hand-picked from remote corners of the world." },
-                                        { step: "02", title: "Distillation", desc: "Legacy extraction techniques that preserve the soul of every ingredient." },
-                                        { step: "03", title: "Aging", desc: "Patience is our secret. Every blend matures for months to achieve perfect harmony." }
+                                        { step: "01", title: "Asli Ingredients", desc: "We use only pure and original fragrance oils — no duplicates, no copies. What you smell is what you get." },
+                                        { step: "02", title: "Long-Lasting Fragrance", desc: "Our perfumes stay with you from morning to night. One spray is enough to leave a lasting impression." },
+                                        { step: "03", title: "Best Price, Premium Quality", desc: "Luxury fragrance doesn't have to be expensive. Get international quality perfumes at honest Indian prices." }
                                     ].map((item, i) => (
                                         <div key={i} className="flex gap-6 items-start">
                                             <span className="text-4xl font-black text-amber-500/20 font-sans tracking-tighter">{item.step}</span>
@@ -267,7 +267,7 @@ export default function Welcome({
                                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent"></div>
                                 </div>
                                 <div className="absolute -bottom-6 -left-6 bg-white p-8 rounded-2xl shadow-2xl max-w-[200px] hidden md:block">
-                                    <p className="text-black font-serif italic text-lg leading-tight">"Where science meets poetry."</p>
+                                    <p className="text-black font-serif italic text-lg leading-tight">"Quality you can trust, fragrance you'll love."</p>
                                 </div>
                             </div>
                         </div>

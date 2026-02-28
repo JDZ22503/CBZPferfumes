@@ -53,7 +53,7 @@ const mainNavItems: NavItem[] = [
         icon: Warehouse,
     },
     {
-        title: 'Settings',
+        title: 'Bill Settings',
         href: route('settings.index'),
         icon: Settings,
     },

@@ -89,7 +89,7 @@ export default function About() {
                     <div className="container mx-auto px-6">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
                             <div>
-                                <div className="text-4xl font-bold text-white mb-2">10+</div>
+                                <div className="text-4xl font-bold text-white mb-2">44+</div>
                                 <div className="text-sm text-gray-500 uppercase tracking-wider">Years of Excellence</div>
                             </div>
                             <div>

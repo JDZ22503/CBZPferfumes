@@ -11,8 +11,14 @@ use App\Http\Controllers\Api\AttarController;
 
 use App\Http\Controllers\Api\ProductSetController;
 use App\Http\Controllers\Api\SettingController;
+use App\Http\Controllers\Api\RazorpayController;
 
 Route::post('/login', [AuthController::class, 'login']);
+
+Route::prefix('razorpay')->group(function () {
+    Route::post('/order', [RazorpayController::class, 'createOrder']);
+    Route::post('/verify', [RazorpayController::class, 'verifySignature']);
+});
 
 Route::middleware(['auth:sanctum'])->name('api.')->group(function () {
     Route::get('/user', function (Request $request) {
@@ -32,4 +38,5 @@ Route::middleware(['auth:sanctum'])->name('api.')->group(function () {
     Route::post('/settings', [SettingController::class, 'update']);
     Route::get('orders/{order}/invoice', [OrderController::class, 'downloadInvoice']);
     Route::delete('order-messages/{id}', [OrderController::class, 'destroyMessage']);
+
 });
